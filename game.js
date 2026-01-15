@@ -178,10 +178,10 @@ function createObjects(scene) {
 }
 
 function createMobileButtons(scene) {
-    // Крупные кнопки внизу экрана (под палец)
-    const buttonHeight = 80;
+    // Делаем кнопки МЕНЬШЕ и ВЫШЕ
+    const buttonHeight = 50; // было 80
     const buttonWidth = config.width / 4;
-    const buttonY = config.height - buttonHeight / 2 - 20;
+    const buttonY = config.height - 40; // было -60
     
     const buttons = [
         {
@@ -211,38 +211,20 @@ function createMobileButtons(scene) {
     ];
     
     buttons.forEach(btn => {
-        // Фон кнопки
-        const bg = scene.add.circle(btn.x, buttonY, 35, btn.color);
-        bg.setInteractive({ useHandCursor: true });
-        bg.on('pointerdown', btn.action);
+        // Меньшие кнопки
+        const bg = scene.add.circle(btn.x, buttonY, 25, btn.color); // было 35
         
-        // Текст кнопки
+        // Меньший текст
         const text = scene.add.text(btn.x, buttonY, btn.text, {
-            fontSize: '30px',
+            fontSize: '20px', // было 30px
             fill: '#ffffff'
         }).setOrigin(0.5);
         
-        // Анимация при нажатии
-        bg.on('pointerdown', () => {
-            scene.tweens.add({
-                targets: bg,
-                scale: 0.9,
-                duration: 100,
-                yoyo: true
-            });
-        });
-        
-        // Сохраняем для обновления UI
-        scene[`btn_${btn.text}`] = bg;
+        // ... остальное
     });
     
-    // Подпись под кнопками
-    scene.add.text(config.width / 2, config.height - 10, 
-        '👆 Нажимай кнопки или тапай объекты 👆', {
-        fontSize: '16px',
-        fill: '#95a5a6',
-        align: 'center'
-    }).setOrigin(0.5);
+    // Убираем подпись под кнопками (на телефоне не нужно)
+    // scene.add.text(config.width / 2, config.height - 10, ...)
 }
 
 function setupMobileGestures(scene) {
@@ -824,4 +806,5 @@ window.addEventListener('load', () => {
     }
 
 });
+
 
