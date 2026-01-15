@@ -1,5 +1,170 @@
 ﻿// 🎮 ОФИСНЫЙ РАЗГРОМ - МОБИЛЬНАЯ ВЕРСИЯ (ТОЛЬКО ТАПЫ)
 
+// ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
+let game;
+let score = 0;
+let stress = 0;
+let draggedObject = null;
+let tapTimer = 0;
+let gameStarted = false;
+
+// ==================== СОХРАНЕНИЕ РЕЗУЛЬТАТА ====================
+function saveScore() {
+    const player = window.playerName || 'Игрок';
+    const scores = JSON.parse(localStorage.getItem('office_rampage_scores') || '[]');
+    
+    scores.push({
+        player: player,
+        score: score,
+        stress: stress,
+        date: new Date().toISOString(),
+        time: Date.now()
+    });
+    
+    // Сохраняем только последние 100 результатов
+    localStorage.setItem('office_rampage_scores', JSON.stringify(scores.slice(-100)));
+    
+    // Сохраняем лучший счёт
+    const best = localStorage.getItem('office_rampage_best') || 0;
+    if (score > best) {
+        localStorage.setItem('office_rampage_best', score);
+    }
+}
+
+// ==================== ЗАВЕРШЕНИЕ ИГРЫ ====================
+function gameOver() {
+    if (!gameStarted) return;
+    
+    gameStarted = false;
+    saveScore();
+    
+    // Показываем результаты
+    setTimeout(() => {
+        if (confirm(`🏢 ИГРА ОКОНЧЕНА!\n\n🏆 Очков: ${score}\n😫 Стресс: ${stress}%\n\nХочешь сыграть ещё?`)) {
+            resetGame();
+        } else {
+            window.returnToMenu();
+        }
+    }, 1000);
+}
+
+// ==================== ОБНОВЛЁННАЯ ФУНКЦИЯ LEVEL COMPLETE ====================
+function levelComplete(scene) {
+    console.log('🎉 Все объекты разрушены!');
+    
+    // Сохраняем результат
+    saveScore();
+    
+    // Показываем победу
+    const winText = scene.add.text(
+        config.width / 2,
+        config.height / 2,
+        `🏢 ПОБЕДА!\n\n🏆 Очков: ${score}\n😫 Стресс: ${stress}%\n\n🎉 ОФИС РАЗРУШЕН!`,
+        {
+            fontSize: '28px',
+            fill: '#f1c40f',
+            stroke: '#000',
+            strokeThickness: 4,
+            align: 'center',
+            lineSpacing: 10
+        }
+    ).setOrigin(0.5).setDepth(1000);
+    
+    // Кнопки
+    const buttons = [
+        { text: '🔄 ЕЩЁ РАЗ', color: 0x2ecc71, action: () => resetGame() },
+        { text: '🏠 В МЕНЮ', color: 0x3498db, action: () => window.returnToMenu() }
+    ];
+    
+    buttons.forEach((btn, i) => {
+        const buttonY = config.height / 2 + 150 + (i * 80);
+        const btnBg = scene.add.rectangle(config.width / 2, buttonY, 200, 60, btn.color)
+            .setInteractive({ useHandCursor: true })
+            .setDepth(1000);
+        
+        const btnText = scene.add.text(config.width / 2, buttonY, btn.text, {
+            fontSize: '24px',
+            fill: '#ffffff'
+        }).setOrigin(0.5).setDepth(1001);
+        
+        btnBg.on('pointerdown', btn.action);
+    });
+    
+    // Telegram: отправляем результат
+    if (window.TelegramApp?.tg?.sendData) {
+        window.TelegramApp.tg.sendData(JSON.stringify({
+            action: 'game_complete',
+            score: score,
+            stress: stress,
+            player: window.playerName || 'Игрок',
+            time: new Date().toISOString()
+        }));
+    }
+}
+
+// ==================== ОБНОВЛЁННЫЙ CREATE ====================
+function create() {
+    console.log('📱 Создание игровой сцены...');
+    gameStarted = true;
+    
+    const scene = this;
+    
+    // Telegram имя игрока
+    if (window.TelegramApp?.userName) {
+        scene.add.text(20, 20, `👤 ${TelegramApp.userName}`, {
+            fontSize: '18px',
+            fill: '#3498db',
+            stroke: '#000',
+            strokeThickness: 2
+        }).setScrollFactor(0).setDepth(1000);
+    }
+    
+    // Кнопка "В меню"
+    const menuBtn = scene.add.rectangle(50, config.height - 40, 80, 40, 0x34495e)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(1000);
+    
+    scene.add.text(50, config.height - 40, '🏠', {
+        fontSize: '20px',
+        fill: '#ffffff'
+    }).setOrigin(0.5).setDepth(1001);
+    
+    menuBtn.on('pointerdown', () => {
+        if (confirm('Выйти в меню?\nТвой прогресс будет сохранён.')) {
+            saveScore();
+            window.returnToMenu();
+        }
+    });
+    
+    // ... остальной код создания игры (createPlayer, createObjects и т.д.)
+    
+    console.log('✅ Игра началась!');
+}
+
+// ==================== ЗАПУСК ИГРЫ ====================
+function initializeGame() {
+    console.log('🎮 Инициализация игры...');
+    
+    try {
+        if (game) {
+            game.destroy(true);
+        }
+        
+        game = new Phaser.Game(config);
+        window.game = game;
+        
+        console.log('✅ Игра запущена!');
+        
+    } catch (error) {
+        console.error('❌ Ошибка запуска:', error);
+        alert('Ошибка загрузки игры. Попробуйте обновить страницу.');
+        window.returnToMenu();
+    }
+}
+
+// Глобальная функция для запуска игры
+window.initializeGame = initializeGame;
+
 console.log('=== ЗАПУСК МОБИЛЬНОЙ ВЕРСИИ ===');
 
 let game;
@@ -806,5 +971,6 @@ window.addEventListener('load', () => {
     }
 
 });
+
 
 
