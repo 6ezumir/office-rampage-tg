@@ -2,7 +2,6 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- ВАЖНО ДЛЯ МОБИЛЬНЫХ! -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="format-detection" content="telephone=no">
     <title>Office Rampage</title>
@@ -36,11 +35,12 @@
             left: 0;
         }
         
-        #loading {
+        /* ЗАГРУЗОЧНЫЙ ЭКРАН */
+        #loading-screen {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: #1a1a2e;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -51,23 +51,119 @@
             text-align: center;
         }
         
-        .loader {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #3498db;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
+        .loading-logo {
+            font-size: 3em;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
         }
         
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .loading-bar {
+            width: 200px;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
         }
         
-        /* Скрываем скроллбар */
-        ::-webkit-scrollbar {
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        /* ГЛАВНОЕ МЕНЮ */
+        #main-menu {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
             display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 900;
+            padding: 20px;
+        }
+        
+        .game-title {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .game-subtitle {
+            font-size: 1em;
+            opacity: 0.7;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .menu-button {
+            width: 80%;
+            max-width: 300px;
+            padding: 18px 25px;
+            margin: 10px 0;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .menu-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(52, 152, 219, 0.4);
+        }
+        
+        .menu-button:active {
+            transform: translateY(-2px);
+        }
+        
+        .menu-button.secondary {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3);
+        }
+        
+        .menu-button.danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+        }
+        
+        .player-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9em;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         /* Для iOS Safari */
@@ -79,36 +175,224 @@
     </style>
 </head>
 <body>
-    <div id="loading">
-        <div class="loader"></div>
-        <h2 style="font-size: 1.2em; margin: 10px 0;">🏢 Office Rampage</h2>
-        <p style="font-size: 0.9em; opacity: 0.7;">Загрузка...</p>
+    <!-- ЗАГРУЗОЧНЫЙ ЭКРАН -->
+    <div id="loading-screen">
+        <div class="loading-logo">🏢</div>
+        <h1 style="font-size: 2em; margin-bottom: 10px;">OFFICE RAMPAGE</h1>
+        <p style="opacity: 0.7; margin-bottom: 30px;">Готовим офис к разрушению...</p>
+        
+        <div class="loading-bar">
+            <div class="loading-progress" id="loading-progress"></div>
+        </div>
+        
+        <p id="loading-text" style="margin-top: 20px; font-size: 0.9em;">Загрузка игры...</p>
     </div>
     
+    <!-- ГЛАВНОЕ МЕНЮ -->
+    <div id="main-menu">
+        <div class="player-info" id="player-info" style="display: none;">
+            👤 <span id="player-name">Игрок</span>
+        </div>
+        
+        <div class="game-title">OFFICE RAMPAGE</div>
+        <div class="game-subtitle">Разрушай офис с умом!</div>
+        
+        <button class="menu-button" onclick="startGame()">
+            🎮 НАЧАТЬ ИГРУ
+        </button>
+        
+        <button class="menu-button secondary" onclick="showInstructions()">
+            📖 КАК ИГРАТЬ
+        </button>
+        
+        <button class="menu-button" onclick="showLeaderboard()">
+            🏆 ТАБЛИЦА ЛИДЕРОВ
+        </button>
+        
+        <button class="menu-button" onclick="showSettings()">
+            ⚙️ НАСТРОЙКИ
+        </button>
+        
+        <div style="margin-top: 40px; font-size: 0.8em; opacity: 0.5; text-align: center;">
+            <p>Тапай объекты чтобы взять</p>
+            <p>Двойной тап чтобы ударить</p>
+            <p>Набери максимум очков!</p>
+        </div>
+    </div>
+    
+    <!-- ИГРА -->
     <div id="game-container"></div>
     
+    <!-- Библиотеки -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <script src="telegram.js"></script>
     <script src="game.js"></script>
     
     <script>
-        // Авто-скрытие загрузки
-        setTimeout(() => {
-            const loading = document.getElementById('loading');
-            if (loading && loading.style.display !== 'none') {
-                loading.style.display = 'none';
-            }
-        }, 3000);
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+        let gameInstance = null;
+        let playerName = 'Игрок';
+        let bestScore = localStorage.getItem('office_rampage_best') || 0;
         
-        // Блокируем зум
+        // ЗАГРУЗОЧНЫЙ ПРОЦЕСС
+        const loadingTexts = [
+            'Загрузка игры...',
+            'Настраиваем офис...',
+            'Готовим принтеры...',
+            'Завариваем кофе...',
+            'Включаем гнев...',
+            'Всё готово!'
+        ];
+        
+        let loadingStep = 0;
+        const loadingProgress = document.getElementById('loading-progress');
+        const loadingText = document.getElementById('loading-text');
+        
+        function updateLoading() {
+            loadingStep++;
+            const progress = Math.min(100, (loadingStep / loadingTexts.length) * 100);
+            loadingProgress.style.width = progress + '%';
+            loadingText.textContent = loadingTexts[loadingStep - 1] || 'Завершение...';
+            
+            if (loadingStep <= loadingTexts.length) {
+                setTimeout(updateLoading, 500 + Math.random() * 300);
+            } else {
+                // Загрузка завершена
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    showMainMenu();
+                }, 500);
+            }
+        }
+        
+        // ПОКАЗАТЬ ГЛАВНОЕ МЕНЮ
+        function showMainMenu() {
+            const menu = document.getElementById('main-menu');
+            const playerInfo = document.getElementById('player-info');
+            
+            // Если есть Telegram, показываем имя игрока
+            if (window.TelegramApp && TelegramApp.userName) {
+                playerName = TelegramApp.userName;
+                document.getElementById('player-name').textContent = playerName;
+                playerInfo.style.display = 'block';
+            }
+            
+            // Показываем лучший счёт
+            if (bestScore > 0) {
+                document.querySelector('.game-subtitle').innerHTML = 
+                    `Разрушай офис с умом!<br><small>🏆 Лучший счёт: ${bestScore}</small>`;
+            }
+            
+            menu.style.display = 'flex';
+            setTimeout(() => {
+                menu.style.animation = 'fadeIn 0.5s ease-out';
+            }, 10);
+        }
+        
+        // НАЧАТЬ ИГРУ
+        function startGame() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            
+            // Если игра уже запущена, перезапускаем
+            if (gameInstance) {
+                gameInstance.destroy(true);
+            }
+            
+            // Запускаем игру
+            initializeGame();
+        }
+        
+        // ВЕРНУТЬСЯ В МЕНЮ
+        function returnToMenu() {
+            if (gameInstance) {
+                gameInstance.destroy(true);
+                gameInstance = null;
+            }
+            
+            document.getElementById('game-container').style.display = 'none';
+            showMainMenu();
+            
+            // Обновляем лучший счёт
+            const currentScore = window.gameScore || 0;
+            if (currentScore > bestScore) {
+                bestScore = currentScore;
+                localStorage.setItem('office_rampage_best', bestScore);
+            }
+        }
+        
+        // ИНСТРУКЦИИ
+        function showInstructions() {
+            alert(`
+🎮 КАК ИГРАТЬ:
+
+1. 👆 ТАПНИ ОБЪЕКТ - взять его
+2. 👆👆 ДВОЙНОЙ ТАП - ударить объект
+3. 📍 ТАПНИ НА ПУСТОТУ - пойти туда
+4. 👊 КНОПКА "УДАР" - ударить ближайший объект
+5. ☕ КНОПКА "КОФЕ" - снять стресс (-20%)
+6. 😡 КНОПКА "ГНЕВ" - увеличить стресс (+30%)
+
+🎯 ЦЕЛЬ:
+- Разрушить все объекты в офисе
+- Набрать максимум очков
+- Контролировать уровень стресса
+
+Удачи! 🏢💥
+            `);
+        }
+        
+        // ТАБЛИЦА ЛИДЕРОВ
+        function showLeaderboard() {
+            const scores = JSON.parse(localStorage.getItem('office_rampage_scores') || '[]');
+            
+            let leaderboardText = '🏆 ТАБЛИЦА ЛИДЕРОВ:\n\n';
+            
+            if (scores.length === 0) {
+                leaderboardText += 'Пока никто не играл!\nБудь первым!';
+            } else {
+                scores.sort((a, b) => b.score - a.score).slice(0, 10).forEach((entry, i) => {
+                    leaderboardText += `${i + 1}. ${entry.player}: ${entry.score} очков\n`;
+                });
+            }
+            
+            leaderboardText += '\n\nТвой лучший счёт: ' + bestScore;
+            
+            alert(leaderboardText);
+        }
+        
+        // НАСТРОЙКИ
+        function showSettings() {
+            const soundEnabled = localStorage.getItem('office_rampage_sound') !== 'false';
+            const vibrationEnabled = localStorage.getItem('office_rampage_vibration') !== 'false';
+            
+            const settings = `
+⚙️ НАСТРОЙКИ:
+
+🔊 Звук: ${soundEnabled ? 'ВКЛ' : 'ВЫКЛ'}
+📳 Вибрация: ${vibrationEnabled ? 'ВКЛ' : 'ВЫКЛ'}
+
+Настройки сохраняются автоматически.
+            `;
+            
+            if (confirm(settings + '\n\nХочешь изменить настройки?')) {
+                localStorage.setItem('office_rampage_sound', !soundEnabled);
+                localStorage.setItem('office_rampage_vibration', !vibrationEnabled);
+                alert('Настройки обновлены!');
+            }
+        }
+        
+        // НАЧАТЬ ЗАГРУЗКУ
+        setTimeout(updateLoading, 1000);
+        
+        // Блокируем зум на мобильных
         document.addEventListener('touchmove', function(e) {
             if(e.scale !== 1) e.preventDefault();
         }, { passive: false });
         
-        // Блокируем контекстное меню
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-        });
+        // Глобальные функции для игры
+        window.returnToMenu = returnToMenu;
+        window.playerName = playerName;
     </script>
 </body>
 </html>
