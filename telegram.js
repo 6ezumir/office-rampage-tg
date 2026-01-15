@@ -1,44 +1,71 @@
-// Минимальная версия для Telegram Mini Apps
+// Telegram Mini App инициализация
+console.log('🔧 Загрузка Telegram Mini App...');
+
 const tg = window.Telegram?.WebApp;
 
 if (tg) {
-    console.log('📱 Telegram Mini App запущен');
+    console.log('✅ Telegram Mini App обнаружен!');
     
-    // Всё для мобильных
+    // Настройки для Telegram
     tg.ready();
     tg.expand(); // Полный экран
-    tg.enableClosingConfirmation(); // Предупреждение при выходе
     
-    // Простые настройки
-    window.playerName = tg.initDataUnsafe?.user?.first_name || 'Игрок';
+    // Сохраняем данные пользователя
+    window.TelegramApp = {
+        user: tg.initDataUnsafe?.user,
+        userName: tg.initDataUnsafe?.user?.first_name || 'Офисный Герой',
+        userId: tg.initDataUnsafe?.user?.id || Date.now(),
+        tg: tg,
+        platform: tg.platform || 'unknown'
+    };
     
-    // Простая кнопка
-    tg.MainButton.setText('ПОДЕЛИТЬСЯ');
+    console.log(`👤 Игрок Telegram: ${window.TelegramApp.userName}`);
+    
+    // Настройка кнопки
+    tg.MainButton.setText('🎮 ПОДЕЛИТЬСЯ РЕЗУЛЬТАТОМ');
     tg.MainButton.hide();
     
-    // Простая вибрация
-    window.vibrate = function() {
+    tg.MainButton.onClick(() => {
+        const score = window.gameScore || 0;
+        const stress = window.gameStress || 0;
+        
+        tg.sendData(JSON.stringify({
+            action: 'share_score',
+            score: score,
+            stress: stress,
+            player: window.TelegramApp.userName,
+            time: new Date().toISOString()
+        }));
+        
+        tg.showAlert(`✅ Результат отправлен!\n${score} очков`);
+    });
+    
+    // Вибрация
+    window.vibrate = function(type = 'medium') {
         if (tg.HapticFeedback) {
-            tg.HapticFeedback.impactOccurred('medium');
+            tg.HapticFeedback.impactOccurred(type);
         }
     };
     
-    // Скрываем загрузку быстро
-    setTimeout(() => {
-        document.getElementById('loading').style.display = 'none';
-    }, 500);
-    
 } else {
-    // Браузерный режим
-    window.playerName = 'Тестовый Игрок';
+    console.log('⚠️ Браузерный режим');
+    
+    // Заглушки для браузера
+    window.TelegramApp = {
+        userName: 'Тестовый Игрок',
+        tg: {
+            sendData: (data) => console.log('Telegram sendData:', data),
+            showAlert: (msg) => alert('Telegram: ' + msg),
+            MainButton: {
+                setText: () => {},
+                show: () => {},
+                hide: () => {},
+                onClick: () => {}
+            }
+        }
+    };
+    
     window.vibrate = function() {
         if (navigator.vibrate) navigator.vibrate(50);
     };
-    
-    setTimeout(() => {
-        document.getElementById('loading').style.display = 'none';
-    }, 1000);
 }
-// Экспортируем для использования в game.js
-
-window.sendGameResult = sendGameResult;
