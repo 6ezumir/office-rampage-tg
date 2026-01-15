@@ -119,19 +119,26 @@ function createPlayer(scene) {
         'player'
     );
     
-    scene.player.setScale(1.2);
-    scene.player.setData('type', 'player');
-    scene.player.setInteractive({ useHandCursor: true });
+    scene.player.setScale(0.8); // было 1.2
+    // ... остальное
+}
+
+function createObjects(scene) {
+    scene.objects = [];
     
-    // Пульсация игрока
-    scene.tweens.add({
-        targets: scene.player,
-        scale: 1.3,
-        duration: 1500,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut'
-    });
+    const objectCount = 8; // было 12
+    
+    for (let i = 0; i < objectCount; i++) {
+        // Меньше объектов в ряду для телефона
+        const gridX = (i % 3) * (config.width / 3) + (config.width / 6); // было %4
+        const gridY = Math.floor(i / 3) * (config.height / 3) + (config.height / 6);
+        
+        // ... создание объекта
+        const obj = scene.add.sprite(gridX, gridY, type);
+        obj.setScale(0.6); // было 0.9
+        
+        // ... остальное
+    }
 }
 
 function createObjects(scene) {
@@ -817,3 +824,4 @@ window.addEventListener('load', () => {
     }
 
 });
+
