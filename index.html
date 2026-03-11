@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="format-detection" content="telephone=no">
     <title>Office Rampage</title>
     
+    <!-- Telegram SDK (ОБЯЗАТЕЛЬНО ПЕРВЫМ) -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
+    <!-- Phaser -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
         
         html, body {
@@ -21,66 +25,43 @@
             height: 100%;
             overflow: hidden;
             background: #1a1a2e;
-            touch-action: manipulation;
-            -webkit-user-select: none;
-            user-select: none;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         
-        #game-container {
-            width: 100vw;
-            height: 100vh;
+        #loading-screen {
             position: fixed;
             top: 0;
             left: 0;
-        }
-        
-        /* ЗАГРУЗОЧНЫЙ ЭКРАН */
-        #loading-screen {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             color: white;
             z-index: 1000;
-            padding: 20px;
-            text-align: center;
         }
         
         .loading-logo {
-            font-size: 3em;
+            font-size: 5em;
             margin-bottom: 20px;
-            animation: bounce 2s infinite;
+            animation: bounce 1s infinite;
         }
         
-        .loading-bar {
-            width: 200px;
-            height: 8px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-            margin: 20px 0;
-            overflow: hidden;
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
         }
         
-        .loading-progress {
-            height: 100%;
-            background: linear-gradient(90deg, #3498db, #2ecc71);
-            width: 0%;
-            border-radius: 4px;
-            transition: width 0.3s;
-        }
-        
-        /* ГЛАВНОЕ МЕНЮ */
         #main-menu {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
-            display: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f3460, #1a1a2e);
+            display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -97,20 +78,12 @@
             background: linear-gradient(45deg, #3498db, #9b59b6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        
-        .game-subtitle {
-            font-size: 1em;
-            opacity: 0.7;
-            margin-bottom: 40px;
-            text-align: center;
         }
         
         .menu-button {
             width: 80%;
             max-width: 300px;
-            padding: 18px 25px;
+            padding: 18px;
             margin: 10px 0;
             background: linear-gradient(45deg, #3498db, #2980b9);
             color: white;
@@ -119,279 +92,388 @@
             font-size: 1.2em;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
         }
         
-        .menu-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(52, 152, 219, 0.4);
-        }
-        
-        .menu-button:active {
-            transform: translateY(-2px);
-        }
-        
-        .menu-button.secondary {
-            background: linear-gradient(45deg, #2ecc71, #27ae60);
-            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3);
-        }
-        
-        .menu-button.danger {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
-        }
-        
-        .player-info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.1);
-            padding: 10px 15px;
-            border-radius: 10px;
-            font-size: 0.9em;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Для iOS Safari */
-        @supports (-webkit-touch-callout: none) {
-            body {
-                height: -webkit-fill-available;
-            }
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <!-- ЗАГРУЗОЧНЫЙ ЭКРАН -->
     <div id="loading-screen">
         <div class="loading-logo">🏢</div>
-        <h1 style="font-size: 2em; margin-bottom: 10px;">OFFICE RAMPAGE</h1>
-        <p style="opacity: 0.7; margin-bottom: 30px;">Готовим офис к разрушению...</p>
-        
-        <div class="loading-bar">
-            <div class="loading-progress" id="loading-progress"></div>
-        </div>
-        
-        <p id="loading-text" style="margin-top: 20px; font-size: 0.9em;">Загрузка игры...</p>
+        <h1>OFFICE RAMPAGE</h1>
+        <p style="margin-top: 20px;">Загрузка...</p>
     </div>
     
-    <!-- ГЛАВНОЕ МЕНЮ -->
-    <div id="main-menu">
-        <div class="player-info" id="player-info" style="display: none;">
-            👤 <span id="player-name">Игрок</span>
-        </div>
-        
+    <div id="main-menu" style="display: none;">
         <div class="game-title">OFFICE RAMPAGE</div>
-        <div class="game-subtitle">Разрушай офис с умом!</div>
+        <p style="margin-bottom: 40px; opacity: 0.7;">Тапай и разрушай!</p>
         
-        <button class="menu-button" onclick="startGame()">
-            🎮 НАЧАТЬ ИГРУ
-        </button>
-        
-        <button class="menu-button secondary" onclick="showInstructions()">
-            📖 КАК ИГРАТЬ
-        </button>
-        
-        <button class="menu-button" onclick="showLeaderboard()">
-            🏆 ТАБЛИЦА ЛИДЕРОВ
-        </button>
-        
-        <button class="menu-button" onclick="showSettings()">
-            ⚙️ НАСТРОЙКИ
-        </button>
-        
-        <div style="margin-top: 40px; font-size: 0.8em; opacity: 0.5; text-align: center;">
-            <p>Тапай объекты чтобы взять</p>
-            <p>Двойной тап чтобы ударить</p>
-            <p>Набери максимум очков!</p>
-        </div>
+        <button class="menu-button" onclick="startGame()">🎮 НАЧАТЬ ИГРУ</button>
+        <button class="menu-button" onclick="showInfo()">📖 КАК ИГРАТЬ</button>
     </div>
     
-    <!-- ИГРА -->
     <div id="game-container"></div>
     
-    <!-- Библиотеки -->
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-    <script src="telegram.js"></script>
-    <script src="game.js"></script>
-    
     <script>
-        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
-        let gameInstance = null;
+        // Telegram инициализация
+        const tg = window.Telegram?.WebApp;
         let playerName = 'Игрок';
-        let bestScore = localStorage.getItem('office_rampage_best') || 0;
         
-        // ЗАГРУЗОЧНЫЙ ПРОЦЕСС
-        const loadingTexts = [
-            'Загрузка игры...',
-            'Настраиваем офис...',
-            'Готовим принтеры...',
-            'Завариваем кофе...',
-            'Включаем гнев...',
-            'Всё готово!'
-        ];
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            playerName = tg.initDataUnsafe?.user?.first_name || 'Игрок';
+            console.log('Telegram Mini App запущен, игрок:', playerName);
+        }
         
-        let loadingStep = 0;
-        const loadingProgress = document.getElementById('loading-progress');
-        const loadingText = document.getElementById('loading-text');
-        
-        function updateLoading() {
-            loadingStep++;
-            const progress = Math.min(100, (loadingStep / loadingTexts.length) * 100);
-            loadingProgress.style.width = progress + '%';
-            loadingText.textContent = loadingTexts[loadingStep - 1] || 'Завершение...';
+        // Функции меню
+        window.startGame = function() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
             
-            if (loadingStep <= loadingTexts.length) {
-                setTimeout(updateLoading, 500 + Math.random() * 300);
-            } else {
-                // Загрузка завершена
+            // Запускаем игру через 100мс (чтобы DOM обновился)
+            setTimeout(() => {
+                if (window.initializeGame) {
+                    window.initializeGame();
+                }
+            }, 100);
+        };
+        
+        window.returnToMenu = function() {
+            if (window.game) {
+                window.game.destroy(true);
+                window.game = null;
+            }
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
+        };
+        
+        window.showInfo = function() {
+            alert('🎮 КАК ИГРАТЬ:\n\n' +
+                  '👆 Тапни объект - взять/бросить\n' +
+                  '👆👆 Двойной тап - ударить\n' +
+                  '📍 Тапни по пустому месту - пойти\n\n' +
+                  '🏆 Разрушь всё!');
+        };
+        
+        // Скрываем загрузку через 1.5 секунды
+        setTimeout(() => {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
+        }, 1500);
+    </script>
+    
+    <!-- Твой код игры -->
+    <script>
+        // ==================== ИГРА ====================
+        let game;
+        let score = 0;
+        let stress = 0;
+        let draggedObject = null;
+        let gameStarted = false;
+        
+        // Конфиг для мобильных
+        const config = {
+            type: Phaser.AUTO,
+            width: window.innerWidth,
+            height: window.innerHeight,
+            parent: 'game-container',
+            backgroundColor: '#2c3e50',
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            },
+            scale: {
+                mode: Phaser.Scale.FIT,
+                autoCenter: Phaser.Scale.CENTER_BOTH
+            },
+            input: {
+                activePointers: 3,
+                touch: {
+                    capture: true
+                }
+            }
+        };
+        
+        function preload() {
+            console.log('📱 Загрузка...');
+            
+            // Создаём простые текстуры
+            const colors = [
+                { key: 'red', color: 0xff6b6b },
+                { key: 'blue', color: 0x4ecdc4 },
+                { key: 'green', color: 0x1abc9c },
+                { key: 'yellow', color: 0xffd166 },
+                { key: 'player', color: 0x3498db }
+            ];
+            
+            colors.forEach(item => {
+                const g = this.add.graphics();
+                g.fillStyle(item.color, 1);
+                g.fillCircle(40, 40, 35);
+                g.generateTexture(item.key, 80, 80);
+                g.destroy();
+            });
+        }
+        
+        function create() {
+            console.log('✅ Игра создана!');
+            gameStarted = true;
+            
+            const scene = this;
+            
+            // Игрок (большой круг)
+            scene.player = scene.add.sprite(
+                config.width / 2,
+                config.height / 2,
+                'player'
+            );
+            scene.player.setScale(1.2);
+            scene.player.setInteractive();
+            
+            // Объекты для разрушения
+            scene.objects = [];
+            const types = ['red', 'blue', 'green', 'yellow'];
+            
+            for (let i = 0; i < 8; i++) {
+                const x = 100 + (i % 4) * (config.width / 4);
+                const y = 100 + Math.floor(i / 4) * 200;
+                const type = types[i % types.length];
+                
+                const obj = scene.add.sprite(x, y, type);
+                obj.setScale(1);
+                obj.setInteractive({ useHandCursor: true });
+                obj.setData('health', 100);
+                obj.setData('type', type);
+                
+                scene.objects.push(obj);
+            }
+            
+            // Включаем перетаскивание
+            scene.input.setDraggable(scene.objects);
+            
+            // Обработчики событий
+            scene.input.on('dragstart', (pointer, obj) => {
+                draggedObject = obj;
+                obj.setTint(0x888888);
+                obj.setScale(1.2);
+            });
+            
+            scene.input.on('drag', (pointer, obj, x, y) => {
+                if (draggedObject === obj) {
+                    obj.x = x;
+                    obj.y = y;
+                }
+            });
+            
+            scene.input.on('dragend', (pointer, obj) => {
+                obj.clearTint();
+                obj.setScale(1);
+                draggedObject = null;
+                
+                score += 5;
+                stress = Math.min(100, stress + 1);
+                updateUI(scene);
+                
+                // Вибрация
+                if (tg?.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+            });
+            
+            scene.input.on('gameobjectdown', (pointer, obj) => {
+                // Двойной тап
+                if (pointer.getDuration() < 300) {
+                    if (obj !== scene.player) {
+                        smashObject(scene, obj);
+                    }
+                }
+            });
+            
+            // UI
+            scene.scoreText = scene.add.text(20, 20, '🏆 0', {
+                fontSize: '24px',
+                fill: '#f1c40f',
+                stroke: '#000',
+                strokeThickness: 4
+            }).setScrollFactor(0);
+            
+            scene.stressText = scene.add.text(config.width - 100, 20, '😫 0%', {
+                fontSize: '24px',
+                fill: '#2ecc71',
+                stroke: '#000',
+                strokeThickness: 4
+            }).setScrollFactor(0);
+            
+            // Кнопки внизу
+            const btnY = config.height - 60;
+            const btnW = config.width / 4;
+            
+            const buttons = [
+                { x: btnW * 0.5, text: '👊', color: 0xe74c3c, action: () => smashNearest(scene) },
+                { x: btnW * 1.5, text: '☕', color: 0x8B4513, action: () => drinkCoffee(scene) },
+                { x: btnW * 2.5, text: '😡', color: 0xf39c12, action: () => rageMode(scene) },
+                { x: btnW * 3.5, text: '🔄', color: 0x2ecc71, action: resetGame }
+            ];
+            
+            buttons.forEach(btn => {
+                const bg = scene.add.circle(btn.x, btnY, 30, btn.color)
+                    .setInteractive({ useHandCursor: true })
+                    .setDepth(1000);
+                
+                scene.add.text(btn.x, btnY, btn.text, {
+                    fontSize: '28px'
+                }).setOrigin(0.5).setDepth(1001);
+                
+                bg.on('pointerdown', btn.action);
+            });
+        }
+        
+        function update() {
+            const scene = this;
+            
+            // Автоматический рост стресса
+            if (gameStarted && Math.random() < 0.01) {
+                stress = Math.min(100, stress + 0.5);
+                updateUI(scene);
+            }
+            
+            // Проверка на Game Over
+            if (stress >= 100 && gameStarted) {
+                gameStarted = false;
+                alert('😫 ИГРА ОКОНЧЕНА!\nОчков: ' + score);
+                resetGame();
+            }
+        }
+        
+        function smashObject(scene, obj) {
+            const health = obj.getData('health') - 30;
+            obj.setData('health', health);
+            
+            score += 30;
+            stress = Math.min(100, stress + 5);
+            
+            // Анимация
+            scene.tweens.add({
+                targets: obj,
+                scaleX: 1.5,
+                scaleY: 0.7,
+                duration: 100,
+                yoyo: true
+            });
+            
+            if (health <= 0) {
+                destroyObject(scene, obj);
+            }
+            
+            updateUI(scene);
+            
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('heavy');
+            }
+        }
+        
+        function destroyObject(scene, obj) {
+            score += 100;
+            scene.objects = scene.objects.filter(o => o !== obj);
+            
+            scene.tweens.add({
+                targets: obj,
+                scale: 0,
+                alpha: 0,
+                duration: 300,
+                onComplete: () => obj.destroy()
+            });
+            
+            if (scene.objects.length === 0) {
                 setTimeout(() => {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    showMainMenu();
+                    alert('🏆 ПОБЕДА!\nОчков: ' + score);
+                    resetGame();
                 }, 500);
             }
         }
         
-        // ПОКАЗАТЬ ГЛАВНОЕ МЕНЮ
-        function showMainMenu() {
-            const menu = document.getElementById('main-menu');
-            const playerInfo = document.getElementById('player-info');
+        function smashNearest(scene) {
+            if (scene.objects.length === 0) return;
             
-            // Если есть Telegram, показываем имя игрока
-            if (window.TelegramApp && TelegramApp.userName) {
-                playerName = TelegramApp.userName;
-                document.getElementById('player-name').textContent = playerName;
-                playerInfo.style.display = 'block';
-            }
+            let nearest = scene.objects[0];
+            let minDist = Phaser.Math.Distance.Between(
+                scene.player.x, scene.player.y,
+                nearest.x, nearest.y
+            );
             
-            // Показываем лучший счёт
-            if (bestScore > 0) {
-                document.querySelector('.game-subtitle').innerHTML = 
-                    `Разрушай офис с умом!<br><small>🏆 Лучший счёт: ${bestScore}</small>`;
-            }
+            scene.objects.forEach(obj => {
+                const dist = Phaser.Math.Distance.Between(
+                    scene.player.x, scene.player.y,
+                    obj.x, obj.y
+                );
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearest = obj;
+                }
+            });
             
-            menu.style.display = 'flex';
-            setTimeout(() => {
-                menu.style.animation = 'fadeIn 0.5s ease-out';
-            }, 10);
-        }
-        
-        // НАЧАТЬ ИГРУ
-        function startGame() {
-            document.getElementById('main-menu').style.display = 'none';
-            document.getElementById('game-container').style.display = 'block';
-            
-            // Если игра уже запущена, перезапускаем
-            if (gameInstance) {
-                gameInstance.destroy(true);
-            }
-            
-            // Запускаем игру
-            initializeGame();
-        }
-        
-        // ВЕРНУТЬСЯ В МЕНЮ
-        function returnToMenu() {
-            if (gameInstance) {
-                gameInstance.destroy(true);
-                gameInstance = null;
-            }
-            
-            document.getElementById('game-container').style.display = 'none';
-            showMainMenu();
-            
-            // Обновляем лучший счёт
-            const currentScore = window.gameScore || 0;
-            if (currentScore > bestScore) {
-                bestScore = currentScore;
-                localStorage.setItem('office_rampage_best', bestScore);
+            if (minDist < 300) {
+                smashObject(scene, nearest);
             }
         }
         
-        // ИНСТРУКЦИИ
-        function showInstructions() {
-            alert(`
-🎮 КАК ИГРАТЬ:
-
-1. 👆 ТАПНИ ОБЪЕКТ - взять его
-2. 👆👆 ДВОЙНОЙ ТАП - ударить объект
-3. 📍 ТАПНИ НА ПУСТОТУ - пойти туда
-4. 👊 КНОПКА "УДАР" - ударить ближайший объект
-5. ☕ КНОПКА "КОФЕ" - снять стресс (-20%)
-6. 😡 КНОПКА "ГНЕВ" - увеличить стресс (+30%)
-
-🎯 ЦЕЛЬ:
-- Разрушить все объекты в офисе
-- Набрать максимум очков
-- Контролировать уровень стресса
-
-Удачи! 🏢💥
-            `);
-        }
-        
-        // ТАБЛИЦА ЛИДЕРОВ
-        function showLeaderboard() {
-            const scores = JSON.parse(localStorage.getItem('office_rampage_scores') || '[]');
+        function drinkCoffee(scene) {
+            stress = Math.max(0, stress - 20);
+            updateUI(scene);
             
-            let leaderboardText = '🏆 ТАБЛИЦА ЛИДЕРОВ:\n\n';
-            
-            if (scores.length === 0) {
-                leaderboardText += 'Пока никто не играл!\nБудь первым!';
-            } else {
-                scores.sort((a, b) => b.score - a.score).slice(0, 10).forEach((entry, i) => {
-                    leaderboardText += `${i + 1}. ${entry.player}: ${entry.score} очков\n`;
-                });
-            }
-            
-            leaderboardText += '\n\nТвой лучший счёт: ' + bestScore;
-            
-            alert(leaderboardText);
-        }
-        
-        // НАСТРОЙКИ
-        function showSettings() {
-            const soundEnabled = localStorage.getItem('office_rampage_sound') !== 'false';
-            const vibrationEnabled = localStorage.getItem('office_rampage_vibration') !== 'false';
-            
-            const settings = `
-⚙️ НАСТРОЙКИ:
-
-🔊 Звук: ${soundEnabled ? 'ВКЛ' : 'ВЫКЛ'}
-📳 Вибрация: ${vibrationEnabled ? 'ВКЛ' : 'ВЫКЛ'}
-
-Настройки сохраняются автоматически.
-            `;
-            
-            if (confirm(settings + '\n\nХочешь изменить настройки?')) {
-                localStorage.setItem('office_rampage_sound', !soundEnabled);
-                localStorage.setItem('office_rampage_vibration', !vibrationEnabled);
-                alert('Настройки обновлены!');
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
             }
         }
         
-        // НАЧАТЬ ЗАГРУЗКУ
-        setTimeout(updateLoading, 1000);
+        function rageMode(scene) {
+            stress = Math.min(100, stress + 30);
+            score += 20;
+            updateUI(scene);
+            
+            scene.cameras.main.shake(200, 0.01);
+            
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('heavy');
+            }
+        }
         
-        // Блокируем зум на мобильных
-        document.addEventListener('touchmove', function(e) {
-            if(e.scale !== 1) e.preventDefault();
-        }, { passive: false });
+        function updateUI(scene) {
+            scene.scoreText.setText('🏆 ' + score);
+            
+            let stressColor = stress > 70 ? '#e74c3c' : stress > 40 ? '#f39c12' : '#2ecc71';
+            scene.stressText.setStyle({ fill: stressColor });
+            scene.stressText.setText('😫 ' + Math.round(stress) + '%');
+        }
         
-        // Глобальные функции для игры
-        window.returnToMenu = returnToMenu;
+        function resetGame() {
+            score = 0;
+            stress = 0;
+            
+            if (game) {
+                game.destroy(true);
+                game = new Phaser.Game(config);
+            }
+        }
+        
+        window.initializeGame = function() {
+            if (game) {
+                game.destroy(true);
+            }
+            game = new Phaser.Game(config);
+            window.game = game;
+        };
+        
+        window.resetGame = resetGame;
         window.playerName = playerName;
     </script>
 </body>
