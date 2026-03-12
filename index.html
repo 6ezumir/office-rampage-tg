@@ -201,7 +201,7 @@
             constructor() {
                 super('GameScene');
                 
-                // КАРТА ОФИСА (0 - пусто, 1 - стена, 2 - пол, 3 - стол, 4 - стул, 5 - комп)
+                // КАРТА ОФИСА (1 - стена, 2 - пол, 3 - стол, 4 - стул, 5 - комп)
                 this.map = [
                     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
                     [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
@@ -224,7 +224,6 @@
             }
             
             preload() {
-                // 1. СОЗДАЕМ ТАЙЛЫ (РИСУЕМ 1 РАЗ)
                 const graphics = this.add.graphics();
                 
                 // Тайл пола
@@ -284,118 +283,46 @@
             }
             
             create() {
-                // 1. РИСУЕМ КАРТУ ИЗ ТАЙЛОВ
+                // РИСУЕМ КАРТУ ИЗ ТАЙЛОВ
                 for(let row = 0; row < this.map.length; row++) {
                     for(let col = 0; col < this.map[row].length; col++) {
                         const x = col * this.tileSize;
                         const y = row * this.tileSize;
                         const tile = this.map[row][col];
                         
+                        // Всегда ставим пол
+                        this.add.image(x, y, 'floor').setOrigin(0);
+                        
+                        // Сверху ставим стены и предметы
                         switch(tile) {
-                            case 1:
-                                this.add.image(x, y, 'wall').setOrigin(0);
-                                break;
-                            case 2:
-                                this.add.image(x, y, 'floor').setOrigin(0);
-                                break;
-                            case 3:
-                                this.add.image(x, y, 'floor').setOrigin(0);
-                                this.add.image(x, y, 'desk').setOrigin(0);
-                                break;
-                            case 4:
-                                this.add.image(x, y, 'floor').setOrigin(0);
-                                this.add.image(x, y, 'chair').setOrigin(0);
-                                break;
-                            case 5:
-                                this.add.image(x, y, 'floor').setOrigin(0);
-                                this.add.image(x, y, 'computer').setOrigin(0);
-                                break;
+                            case 1: this.add.image(x, y, 'wall').setOrigin(0); break;
+                            case 3: this.add.image(x, y, 'desk').setOrigin(0); break;
+                            case 4: this.add.image(x, y, 'chair').setOrigin(0); break;
+                            case 5: this.add.image(x, y, 'computer').setOrigin(0); break;
                         }
                     }
                 }
                 
-                // 2. СОЗДАЕМ ИГРОКА
+                // СОЗДАЕМ ИГРОКА
                 this.player = this.physics.add.sprite(300, 300, 'player');
                 this.player.setCollideWorldBounds(true);
                 this.player.setData('speed', 200);
                 
-                // 3. УПРАВЛЕНИЕ
+                // УПРАВЛЕНИЕ
                 this.cursors = this.input.keyboard.createCursorKeys();
                 
-                // 4. КАМЕРА
+                // КАМЕРА
                 this.cameras.main.setBounds(0, 0, 20 * 32, 13 * 32);
                 this.cameras.main.startFollow(this.player);
                 this.cameras.main.setZoom(2);
                 
-                // 5. ИНТЕРФЕЙС
-                const uiBar = this.add.rectangle(400, 20, 400, 40, 0x000000, 0.7)
-                    .setScrollFactor(0);
-                
-                this.scoreText = this.add.text(300, 20, '💰 0', {
+                // ИНТЕРФЕЙС
+                this.scoreText = this.add.text(10, 10, '💰 0', {
                     fontSize: '24px',
                     fill: '#f1c40f',
                     stroke: '#000',
                     strokeThickness: 4
                 }).setScrollFactor(0);
-                
-                // 6. ПРЕДМЕТЫ ДЛЯ ВЗАИМОДЕЙСТВИЯ
-                this.items = this.physics.add.group();
-                
-                // Добавляем предметы на карту
-                for(let row = 0; row < this.map.length; row++) {
-                    for(let col = 0; col < this.map[row].length; col++) {
-                        const tile = this.map[row][col];
-                        if(tile >= 3) {
-                            const x = col * this.tileSize + 16;
-                            const y = row * this.tileSize + 16;
-                            const item = this.items.create(x, y, 
-                                tile === 3 ? 'desk' : 
-                                tile === 4 ? 'chair' : 'computer'
-                            );
-                            item.setData('health', 100);
-                            item.setData('type', 
-                                tile === 3 ? 'desk' : 
-                                tile === 4 ? 'chair' : 'computer'
-                            );
-                        }
-                    }
-                }
-                
-                // 7. ВЗАИМОДЕЙСТВИЕ
-                this.input.on('gameobjectdown', (pointer, obj) => {
-                    if(obj.texture.key !== 'player') {
-                        // Анимация удара
-                        this.tweens.add({
-                            targets: obj,
-                            scaleX: 1.3,
-                            scaleY: 0.7,
-                            duration: 100,
-                            yoyo: true
-                        });
-                        
-                        // Урон
-                        const health = obj.getData('health') - 30;
-                        obj.setData('health', health);
-                        
-                        if(health <= 0) {
-                            obj.destroy();
-                            this.score += 10;
-                            this.scoreText.setText('💰 ' + this.score);
-                            
-                            // Эффект взрыва
-                            const particles = this.add.particles(obj.x, obj.y, 'computer', {
-                                speed: { min: -100, max: 100 },
-                                scale: { start: 0.5, end: 0 },
-                                quantity: 10,
-                                lifespan: 500
-                            });
-                            
-                            this.time.delayedCall(500, () => particles.destroy());
-                        }
-                    }
-                });
-                
-                this.score = 0;
             }
             
             update() {
