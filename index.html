@@ -12,6 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     
     <style>
+        /* ========== СТИЛИ ========== */
         * {
             margin: 0;
             padding: 0;
@@ -19,29 +20,44 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+        body {
             background: #1a1a2e;
+            overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         
-        /* ЭКРАН ЗАГРУЗКИ */
-        #loading {
+        #loading, #menu, #game {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             color: white;
+        }
+        
+        #loading {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
             z-index: 2000;
         }
+        
+        #menu {
+            background: linear-gradient(135deg, #0f3460, #1a1a2e);
+            display: none;
+            z-index: 1500;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        #game {
+            display: none;
+            z-index: 1000;
+        }
+        
+        h1 { font-size: 2.5em; margin-bottom: 20px; }
         
         .loading-logo {
             font-size: 5em;
@@ -54,116 +70,42 @@
             50% { transform: translateY(-20px); }
         }
         
-        /* ГЛАВНОЕ МЕНЮ */
-        #menu {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #0f3460, #1a1a2e);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            z-index: 1500;
-            padding: 20px;
-        }
-        
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            text-align: center;
-            background: linear-gradient(45deg, #3498db, #9b59b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
         .chars {
-            display: flex;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            max-width: 800px;
             margin: 30px 0;
-            flex-wrap: wrap;
-            justify-content: center;
         }
         
         .char {
             background: rgba(255,255,255,0.1);
+            border-radius: 15px;
             padding: 20px;
-            border-radius: 20px;
             cursor: pointer;
             text-align: center;
-            width: 120px;
             border: 3px solid transparent;
             transition: all 0.3s;
         }
         
-        .char:hover {
-            transform: translateY(-5px);
-            background: rgba(255,255,255,0.15);
-        }
+        .char:hover { transform: translateY(-5px); background: rgba(255,255,255,0.15); }
+        .char.selected { border-color: #f1c40f; background: rgba(255,255,255,0.2); }
         
-        .char.selected {
-            border-color: #f1c40f;
-            background: rgba(255,255,255,0.2);
-            box-shadow: 0 0 20px rgba(241,196,15,0.3);
-        }
-        
-        .char-emoji {
-            font-size: 4em;
-            margin-bottom: 10px;
-        }
-        
-        .char-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .char-desc {
-            font-size: 0.8em;
-            opacity: 0.7;
-        }
+        .char-emoji { font-size: 3em; margin-bottom: 10px; }
+        .char-name { font-weight: bold; margin-bottom: 5px; }
         
         button {
             padding: 15px 40px;
-            font-size: 1.3em;
-            background: linear-gradient(45deg, #3498db, #2980b9);
+            font-size: 1.2em;
+            background: #3498db;
             color: white;
             border: none;
-            border-radius: 15px;
+            border-radius: 10px;
             cursor: pointer;
             margin: 10px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
         
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        button.secondary {
-            background: linear-gradient(45deg, #2ecc71, #27ae60);
-        }
-        
-        #game-container {
-            width: 100vw;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            display: none;
-        }
-        
-        .player-info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.1);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 1em;
-        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -171,57 +113,41 @@
     <div id="loading">
         <div class="loading-logo">🏢</div>
         <h1>OFFICE RAMPAGE</h1>
-        <p>Загрузка игры...</p>
+        <p>Загрузка...</p>
     </div>
     
     <!-- МЕНЮ -->
     <div id="menu">
-        <div class="player-info" id="playerInfo">
-            👤 <span id="playerName">Игрок</span>
-        </div>
-        
         <h1>ВЫБЕРИ ПЕРСОНАЖА</h1>
         
         <div class="chars">
             <div class="char" onclick="selectChar('boss')">
                 <div class="char-emoji">👔</div>
                 <div class="char-name">БОСС</div>
-                <div class="char-desc">💪 Сильный удар</div>
             </div>
             <div class="char" onclick="selectChar('worker')">
                 <div class="char-emoji">👨‍💻</div>
                 <div class="char-name">ОФИСНЫЙ</div>
-                <div class="char-desc">⚡ Быстрый</div>
             </div>
             <div class="char" onclick="selectChar('cleaner')">
                 <div class="char-emoji">🧹</div>
                 <div class="char-name">УБОРЩИК</div>
-                <div class="char-desc">💚 Восстановление</div>
             </div>
         </div>
         
         <button onclick="startGame()" id="startBtn" disabled>🎮 НАЧАТЬ ИГРУ</button>
-        <button class="secondary" onclick="showHelp()">📖 КАК ИГРАТЬ</button>
     </div>
     
     <!-- ИГРА -->
-    <div id="game-container"></div>
+    <div id="game"></div>
 
+    <!-- ========== ВЕСЬ JAVASCRIPT КОД ЗДЕСЬ ========== -->
     <script>
-        // ==================== TELEGRAM INIT ====================
+        // ==================== TELEGRAM ====================
         const tg = window.Telegram?.WebApp;
-        let playerName = 'Игрок';
-        
         if (tg) {
             tg.ready();
             tg.expand();
-            playerName = tg.initDataUnsafe?.user?.first_name || 'Игрок';
-            document.getElementById('playerName').textContent = playerName;
-            
-            window.TelegramApp = {
-                userName: playerName,
-                tg: tg
-            };
         }
         
         // ==================== ПЕРЕМЕННЫЕ ====================
@@ -230,9 +156,33 @@
         let score = 0;
         let stress = 0;
         
+        // ==================== ДАННЫЕ ПЕРСОНАЖЕЙ ====================
+        const characters = {
+            boss: { name: 'БОСС', color: 0xc0392b, speed: 150, damage: 50 },
+            worker: { name: 'ОФИСНЫЙ', color: 0x3498db, speed: 200, damage: 30 },
+            cleaner: { name: 'УБОРЩИК', color: 0x27ae60, speed: 180, damage: 25 }
+        };
+        
+        // ==================== ДАННЫЕ ЛОКАЦИЙ ====================
+        const locations = {
+            office: {
+                name: '🏢 ОФИС',
+                color: 0x2c3e50,
+                objects: [
+                    { type: 'printer', x: 200, y: 200, health: 100, color: 0xff6b6b },
+                    { type: 'computer', x: 400, y: 150, health: 80, color: 0x4ecdc4 },
+                    { type: 'chair', x: 300, y: 300, health: 50, color: 0x1abc9c }
+                ]
+            }
+        };
+        
+        let currentLocation = 'office';
+        let playerStats = {};
+        
         // ==================== ФУНКЦИИ МЕНЮ ====================
         window.selectChar = function(char) {
             selectedChar = char;
+            playerStats = characters[char];
             
             document.querySelectorAll('.char').forEach(el => {
                 el.classList.remove('selected');
@@ -246,123 +196,62 @@
             if (!selectedChar) return;
             
             document.getElementById('menu').style.display = 'none';
-            document.getElementById('game-container').style.display = 'block';
+            document.getElementById('game').style.display = 'block';
+            document.getElementById('game').innerHTML = '';
             
-            // Очищаем контейнер
-            document.getElementById('game-container').innerHTML = '';
-            
-            // Запускаем игру
-            setTimeout(() => {
-                initGame();
-            }, 100);
-        };
-        
-        window.showHelp = function() {
-            alert('🎮 КАК ИГРАТЬ:\n\n' +
-                  '👆 Тапни объект - взять/бросить\n' +
-                  '👆👆 Двойной тап - ударить\n' +
-                  '📍 Тапни по пустому месту - пойти\n\n' +
-                  'Разрушай всё вокруг!');
-        };
-        
-        window.returnToMenu = function() {
-            if (game) {
-                game.destroy(true);
-                game = null;
-            }
-            document.getElementById('game-container').style.display = 'none';
-            document.getElementById('menu').style.display = 'flex';
+            initGame();
         };
         
         // ==================== ИНИЦИАЛИЗАЦИЯ ИГРЫ ====================
         function initGame() {
-            console.log('Запуск игры с персонажем:', selectedChar);
-            
-            // СОЗДАЕМ КОНФИГ ЗДЕСЬ, ЧТОБЫ ОН БЫЛ ДОСТУПЕН
-            const gameConfig = {
+            const config = {
                 type: Phaser.AUTO,
                 width: window.innerWidth,
                 height: window.innerHeight,
-                parent: 'game-container',
-                backgroundColor: '#2c3e50',
-                scene: {
-                    preload: preload,
-                    create: create,
-                    update: update
-                },
-                scale: {
-                    mode: Phaser.Scale.FIT,
-                    autoCenter: Phaser.Scale.CENTER_BOTH
-                }
+                parent: 'game',
+                backgroundColor: locations[currentLocation].color,
+                scene: { preload, create, update },
+                scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
             };
             
-            game = new Phaser.Game(gameConfig);
+            game = new Phaser.Game(config);
         }
         
-        // ==================== СЦЕНЫ ИГРЫ ====================
+        // ==================== СЦЕНЫ PHASER ====================
         function preload() {
-            console.log('Preload...');
-            
             const scene = this;
+            const location = locations[currentLocation];
             
-            // Цвета для персонажей
-            const colors = {
-                boss: 0xc0392b,
-                worker: 0x3498db,
-                cleaner: 0x27ae60
-            };
+            // Текстура пола
+            const floorTex = scene.add.graphics();
+            floorTex.fillStyle(location.color, 1);
+            floorTex.fillRect(0, 0, 64, 64);
+            floorTex.generateTexture('floor', 64, 64);
+            floorTex.destroy();
             
-            // Создаем текстуру игрока
-            const playerColor = colors[selectedChar] || 0x3498db;
+            // Текстура игрока
             const playerTex = scene.add.graphics();
-            
-            // Тело
-            playerTex.fillStyle(playerColor, 1);
+            playerTex.fillStyle(playerStats.color, 1);
             playerTex.fillCircle(40, 40, 35);
-            
-            // Глаза
             playerTex.fillStyle(0xffffff, 1);
             playerTex.fillCircle(30, 30, 8);
             playerTex.fillCircle(50, 30, 8);
-            playerTex.fillStyle(0x000000, 1);
-            playerTex.fillCircle(32, 30, 4);
-            playerTex.fillCircle(52, 30, 4);
-            
             playerTex.generateTexture('player', 80, 80);
             playerTex.destroy();
             
-            // Создаем текстуры предметов
-            const itemColors = [0xff6b6b, 0x4ecdc4, 0x1abc9c, 0xffd166];
-            itemColors.forEach((color, i) => {
+            // Текстуры предметов
+            location.objects.forEach((obj, index) => {
                 const tex = scene.add.graphics();
-                tex.fillStyle(color, 1);
+                tex.fillStyle(obj.color, 1);
                 tex.fillCircle(40, 40, 30);
-                tex.generateTexture('item' + i, 80, 80);
+                tex.generateTexture(`item_${index}`, 80, 80);
                 tex.destroy();
             });
-            
-            // Фон
-            const bgTex = scene.add.graphics();
-            bgTex.fillStyle(0x34495e, 1);
-            bgTex.fillRect(0, 0, 64, 64);
-            bgTex.lineStyle(2, 0x2c3e50, 0.5);
-            for(let i = 0; i <= 64; i+= 32) {
-                bgTex.moveTo(i, 0);
-                bgTex.lineTo(i, 64);
-                bgTex.moveTo(0, i);
-                bgTex.lineTo(64, i);
-            }
-            bgTex.strokePath();
-            bgTex.generateTexture('floor', 64, 64);
-            bgTex.destroy();
         }
         
         function create() {
-            console.log('Create...');
-            
             const scene = this;
-            
-            // Получаем размеры
+            const location = locations[currentLocation];
             const width = window.innerWidth;
             const height = window.innerHeight;
             
@@ -372,60 +261,75 @@
                 .setTileScale(2);
             
             // Игрок
-            scene.player = scene.add.sprite(200, 300, 'player');
+            scene.player = scene.add.sprite(300, 300, 'player');
             scene.player.setScale(1.2);
             
             // Предметы
             scene.objects = [];
-            for(let i = 0; i < 8; i++) {
-                const x = 150 + Math.random() * (width - 300);
-                const y = 150 + Math.random() * (height - 300);
-                const type = 'item' + (i % 4);
-                
-                const obj = scene.add.sprite(x, y, type);
-                obj.setInteractive();
-                obj.setData('health', 100);
-                obj.setData('type', type);
-                scene.objects.push(obj);
-            }
+            location.objects.forEach((obj, index) => {
+                const item = scene.add.sprite(obj.x, obj.y, `item_${index}`);
+                item.setInteractive();
+                item.setData('health', obj.health);
+                item.setData('type', obj.type);
+                scene.objects.push(item);
+            });
             
             // UI
-            scene.scoreText = scene.add.text(20, 20, '🏆 0', {
-                fontSize: '28px',
+            scene.scoreText = scene.add.text(20, 20, '💰 0', {
+                fontSize: '24px',
                 fill: '#f1c40f',
                 stroke: '#000',
                 strokeThickness: 4
             }).setScrollFactor(0);
             
-            scene.stressText = scene.add.text(width - 150, 20, '😫 0%', {
-                fontSize: '28px',
+            scene.stressText = scene.add.text(width - 120, 20, '😫 0%', {
+                fontSize: '24px',
                 fill: '#2ecc71',
                 stroke: '#000',
                 strokeThickness: 4
             }).setScrollFactor(0);
             
-            // Кнопка меню
-            const menuBtn = scene.add.circle(40, height - 40, 30, 0x34495e)
-                .setInteractive()
-                .setScrollFactor(0);
-            
-            scene.add.text(40, height - 40, '🏠', {
-                fontSize: '28px'
-            }).setOrigin(0.5).setScrollFactor(0);
-            
-            menuBtn.on('pointerdown', () => {
-                if(confirm('Выйти в меню?')) {
-                    returnToMenu();
+            // Управление
+            scene.input.on('pointerdown', (pointer) => {
+                const target = pointer.targetObject;
+                
+                if (!target) {
+                    // Движение
+                    scene.tweens.add({
+                        targets: scene.player,
+                        x: pointer.x,
+                        y: pointer.y,
+                        duration: 1000
+                    });
                 }
             });
             
-            console.log('Игра создана');
+            scene.input.on('gameobjectdown', (pointer, obj) => {
+                // Атака предмета
+                const health = obj.getData('health') - playerStats.damage;
+                obj.setData('health', health);
+                
+                scene.tweens.add({
+                    targets: obj,
+                    scaleX: 1.5,
+                    scaleY: 0.7,
+                    duration: 100,
+                    yoyo: true
+                });
+                
+                if (health <= 0) {
+                    score += 50;
+                    obj.destroy();
+                }
+                
+                stress = Math.min(100, stress + 2);
+                updateUI(scene);
+            });
         }
         
         function update() {
             const scene = this;
             
-            // Стресс растет со временем
             if (Math.random() < 0.01) {
                 stress = Math.min(100, stress + 0.5);
                 updateUI(scene);
@@ -433,7 +337,7 @@
         }
         
         function updateUI(scene) {
-            scene.scoreText.setText('🏆 ' + Math.floor(score));
+            scene.scoreText.setText('💰 ' + score);
             
             let color = stress > 70 ? '#e74c3c' : stress > 40 ? '#f39c12' : '#2ecc71';
             scene.stressText.setStyle({ fill: color });
@@ -449,6 +353,5 @@
         };
     </script>
 </body>
-</html>
 </html>
 
