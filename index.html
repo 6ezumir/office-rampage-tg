@@ -278,7 +278,8 @@
         function initGame() {
             console.log('Запуск игры с персонажем:', selectedChar);
             
-            const config = {
+            // СОЗДАЕМ КОНФИГ ЗДЕСЬ, ЧТОБЫ ОН БЫЛ ДОСТУПЕН
+            const gameConfig = {
                 type: Phaser.AUTO,
                 width: window.innerWidth,
                 height: window.innerHeight,
@@ -295,7 +296,7 @@
                 }
             };
             
-            game = new Phaser.Game(config);
+            game = new Phaser.Game(gameConfig);
         }
         
         // ==================== СЦЕНЫ ИГРЫ ====================
@@ -361,8 +362,12 @@
             
             const scene = this;
             
+            // Получаем размеры
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
             // Пол
-            scene.add.tileSprite(0, 0, config.width, config.height, 'floor')
+            scene.add.tileSprite(0, 0, width, height, 'floor')
                 .setOrigin(0)
                 .setTileScale(2);
             
@@ -373,8 +378,8 @@
             // Предметы
             scene.objects = [];
             for(let i = 0; i < 8; i++) {
-                const x = 150 + Math.random() * (config.width - 300);
-                const y = 150 + Math.random() * (config.height - 300);
+                const x = 150 + Math.random() * (width - 300);
+                const y = 150 + Math.random() * (height - 300);
                 const type = 'item' + (i % 4);
                 
                 const obj = scene.add.sprite(x, y, type);
@@ -392,7 +397,7 @@
                 strokeThickness: 4
             }).setScrollFactor(0);
             
-            scene.stressText = scene.add.text(config.width - 150, 20, '😫 0%', {
+            scene.stressText = scene.add.text(width - 150, 20, '😫 0%', {
                 fontSize: '28px',
                 fill: '#2ecc71',
                 stroke: '#000',
@@ -400,11 +405,11 @@
             }).setScrollFactor(0);
             
             // Кнопка меню
-            const menuBtn = scene.add.circle(40, config.height - 40, 30, 0x34495e)
+            const menuBtn = scene.add.circle(40, height - 40, 30, 0x34495e)
                 .setInteractive()
                 .setScrollFactor(0);
             
-            scene.add.text(40, config.height - 40, '🏠', {
+            scene.add.text(40, height - 40, '🏠', {
                 fontSize: '28px'
             }).setOrigin(0.5).setScrollFactor(0);
             
@@ -445,3 +450,5 @@
     </script>
 </body>
 </html>
+</html>
+
