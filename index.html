@@ -1,49 +1,22 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Office Rampage</title>
     
-    <!-- Telegram SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
     <!-- Phaser -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     
     <style>
-        * {
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
             background: #1a1a2e;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            font-family: Arial;
         }
         
-        /* ЭКРАН ЗАГРУЗКИ */
-        #loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            z-index: 1000;
-        }
-        
-        /* ГЛАВНОЕ МЕНЮ */
         #menu {
             position: fixed;
             top: 0;
@@ -51,69 +24,54 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(135deg, #0f3460, #1a1a2e);
-            display: none;
+            display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             color: white;
-            z-index: 900;
-            padding: 20px;
+            z-index: 100;
         }
         
         h1 {
-            font-size: 2.5em;
+            font-size: 2em;
             margin-bottom: 30px;
-            text-align: center;
-            background: linear-gradient(45deg, #3498db, #9b59b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
         
-        /* ВЫБОР ПЕРСОНАЖА */
-        .character-select {
+        .chars {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             margin: 30px 0;
-            flex-wrap: wrap;
-            justify-content: center;
         }
         
-        .character {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
+        .char {
+            background: rgba(255,255,255,0.1);
             padding: 20px;
-            width: 100px;
-            text-align: center;
+            border-radius: 20px;
             cursor: pointer;
+            text-align: center;
+            width: 100px;
             border: 2px solid transparent;
-            transition: all 0.3s;
         }
         
-        .character.selected {
-            border-color: #f1c40f;
-            transform: scale(1.05);
-            background: rgba(255, 255, 255, 0.2);
+        .char.selected {
+            border-color: yellow;
+            background: rgba(255,255,255,0.2);
         }
         
-        .character-avatar {
+        .char-emoji {
             font-size: 3em;
             margin-bottom: 10px;
         }
         
-        /* КНОПКИ */
         button {
-            width: 80%;
-            max-width: 300px;
-            padding: 15px 25px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 15px;
+            padding: 15px 40px;
             font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            background: linear-gradient(45deg, #3498db, #2980b9);
+            background: #3498db;
             color: white;
-            transition: all 0.3s;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
         }
         
         button:disabled {
@@ -121,75 +79,51 @@
             cursor: not-allowed;
         }
         
-        button.secondary {
-            background: linear-gradient(45deg, #2ecc71, #27ae60);
-        }
-        
-        /* КОНТЕЙНЕР ИГРЫ */
-        #game-container {
+        #game {
             width: 100vw;
             height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
             display: none;
         }
     </style>
 </head>
 <body>
-    <!-- ЗАГРУЗКА -->
-    <div id="loading">
-        <h1>🏢 OFFICE RAMPAGE</h1>
-        <p>Загрузка...</p>
-    </div>
-    
     <!-- МЕНЮ -->
     <div id="menu">
-        <h1>ВЫБЕРИ ПЕРСОНАЖА</h1>
+        <h1>🏢 OFFICE RAMPAGE</h1>
+        <h3>ВЫБЕРИ ПЕРСОНАЖА</h3>
         
-        <div class="character-select">
-            <div class="character" onclick="selectChar('boss')">
-                <div class="character-avatar">👔</div>
+        <div class="chars">
+            <div class="char" onclick="selectChar('boss')">
+                <div class="char-emoji">👔</div>
                 <div>БОСС</div>
-                <small style="opacity:0.7">Сильный</small>
             </div>
-            <div class="character" onclick="selectChar('worker')">
-                <div class="character-avatar">👨‍💻</div>
+            <div class="char" onclick="selectChar('worker')">
+                <div class="char-emoji">👨‍💻</div>
                 <div>ОФИСНЫЙ</div>
-                <small style="opacity:0.7">Быстрый</small>
             </div>
-            <div class="character" onclick="selectChar('cleaner')">
-                <div class="character-avatar">🧹</div>
+            <div class="char" onclick="selectChar('cleaner')">
+                <div class="char-emoji">🧹</div>
                 <div>УБОРЩИК</div>
-                <small style="opacity:0.7">Выносливый</small>
             </div>
         </div>
         
-        <button onclick="startGame()" id="startBtn" disabled>🎮 НАЧАТЬ ИГРУ</button>
-        <button class="secondary" onclick="showHelp()">📖 КАК ИГРАТЬ</button>
+        <button onclick="startGame()" id="startBtn" disabled>▶ НАЧАТЬ ИГРУ</button>
     </div>
     
     <!-- ИГРА -->
-    <div id="game-container"></div>
+    <div id="game"></div>
 
     <script>
-        // ==================== TELEGRAM ====================
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-        }
-        
-        // ==================== ПЕРЕМЕННЫЕ ====================
-        let selectedCharacter = null;
+        // ========== ПЕРЕМЕННЫЕ ==========
+        let selectedChar = null;
         let game = null;
         
-        // ==================== ФУНКЦИИ МЕНЮ ====================
-        window.selectChar = function(character) {
-            selectedCharacter = character;
+        // ========== ФУНКЦИИ МЕНЮ ==========
+        window.selectChar = function(char) {
+            selectedChar = char;
             
             // Подсветка выбранного
-            document.querySelectorAll('.character').forEach(el => {
+            document.querySelectorAll('.char').forEach(el => {
                 el.classList.remove('selected');
             });
             event.currentTarget.classList.add('selected');
@@ -199,49 +133,33 @@
         };
         
         window.startGame = function() {
-            // Скрываем меню
+            if (!selectedChar) return;
+            
+            // Прячем меню
             document.getElementById('menu').style.display = 'none';
             
             // Показываем контейнер игры
-            const container = document.getElementById('game-container');
-            container.style.display = 'block';
+            const gameDiv = document.getElementById('game');
+            gameDiv.style.display = 'block';
             
-            // Убеждаемся что контейнер чистый
-            container.innerHTML = '';
-            
-            // Запускаем игру с небольшой задержкой
-            setTimeout(() => {
-                initGame();
-            }, 100);
+            // Запускаем игру
+            startPhaserGame();
         };
         
-        window.showHelp = function() {
-            alert('🎮 КАК ИГРАТЬ:\n\n' +
-                  '1. Тапни по предмету - взять\n' +
-                  '2. Двойной тап - ударить\n' +
-                  '3. Тапни по пустому месту - пойти\n\n' +
-                  'Разрушай всё вокруг!');
-        };
-        
-        // ==================== ИНИЦИАЛИЗАЦИЯ ИГРЫ ====================
-        function initGame() {
-            console.log('Запуск игры с персонажем:', selectedCharacter);
+        // ========== ЗАПУСК PHASER ==========
+        function startPhaserGame() {
+            console.log('Запуск игры с персонажем:', selectedChar);
             
-            // Конфигурация Phaser
+            // Простейшая конфигурация
             const config = {
                 type: Phaser.AUTO,
-                width: window.innerWidth,
-                height: window.innerHeight,
-                parent: 'game-container',
+                width: 800,
+                height: 600,
+                parent: 'game',
                 backgroundColor: '#2c3e50',
                 scene: {
                     preload: preload,
-                    create: create,
-                    update: update
-                },
-                scale: {
-                    mode: Phaser.Scale.FIT,
-                    autoCenter: Phaser.Scale.CENTER_BOTH
+                    create: create
                 }
             };
             
@@ -249,151 +167,67 @@
             game = new Phaser.Game(config);
         }
         
-        // ==================== СЦЕНЫ ИГРЫ ====================
+        // ========== СЦЕНЫ ==========
         function preload() {
-            console.log('Загрузка...');
+            console.log('Preload начат');
             
-            const scene = this;
+            // Создаем простую графику
+            const graphics = this.add.graphics();
             
-            // СОЗДАЕМ ТЕКСТУРЫ
-            const colors = {
-                player: 0x3498db,
-                boss: 0xc0392b,
-                worker: 0x3498db,
-                cleaner: 0x27ae60,
-                item1: 0xff6b6b,
-                item2: 0x4ecdc4,
-                item3: 0x1abc9c,
-                item4: 0xffd166
-            };
+            // Игрок
+            graphics.fillStyle(0x3498db, 1);
+            graphics.fillCircle(100, 100, 30);
+            graphics.generateTexture('player', 200, 200);
             
-            // Текстура игрока (с учетом выбранного персонажа)
-            const playerColor = colors[selectedCharacter] || 0x3498db;
-            const playerTex = scene.add.graphics();
-            playerTex.fillStyle(playerColor, 1);
-            playerTex.fillCircle(40, 40, 35);
+            // Предмет
+            graphics.clear();
+            graphics.fillStyle(0xff6b6b, 1);
+            graphics.fillCircle(100, 100, 25);
+            graphics.generateTexture('item', 200, 200);
             
-            // Глаза
-            playerTex.fillStyle(0xffffff, 1);
-            playerTex.fillCircle(30, 30, 8);
-            playerTex.fillCircle(50, 30, 8);
-            playerTex.fillStyle(0x000000, 1);
-            playerTex.fillCircle(32, 30, 4);
-            playerTex.fillCircle(52, 30, 4);
+            graphics.destroy();
             
-            playerTex.generateTexture('player', 80, 80);
-            playerTex.destroy();
-            
-            // Текстуры предметов
-            for(let i = 1; i <= 4; i++) {
-                const tex = scene.add.graphics();
-                tex.fillStyle(colors['item' + i], 1);
-                tex.fillCircle(40, 40, 30);
-                tex.generateTexture('item' + i, 80, 80);
-                tex.destroy();
-            }
-            
-            console.log('Загрузка завершена');
+            console.log('Preload завершен');
         }
         
         function create() {
-            console.log('Создание игры');
+            console.log('Create начат');
             
             const scene = this;
             
-            // ФОН
-            scene.add.rectangle(0, 0, config.width, config.height, 0x2c3e50)
-                .setOrigin(0, 0);
+            // Фон
+            scene.add.rectangle(400, 300, 800, 600, 0x34495e);
             
-            // ИГРОК
-            scene.player = scene.add.sprite(200, 300, 'player');
-            scene.player.setScale(1.2);
+            // Игрок
+            scene.player = scene.add.sprite(400, 300, 'player');
+            scene.player.setScale(1);
             
-            // ПРЕДМЕТЫ
-            scene.objects = [];
-            const types = ['item1', 'item2', 'item3', 'item4'];
-            
-            for(let i = 0; i < 8; i++) {
-                const x = 100 + Math.random() * (config.width - 200);
-                const y = 100 + Math.random() * (config.height - 200);
-                const type = types[i % 4];
-                
-                const obj = scene.add.sprite(x, y, type);
-                obj.setInteractive({ useHandCursor: true });
-                obj.setData('health', 100);
-                obj.setData('type', type);
-                
-                scene.objects.push(obj);
+            // Предметы
+            for(let i = 0; i < 5; i++) {
+                const x = 200 + Math.random() * 400;
+                const y = 150 + Math.random() * 300;
+                scene.add.sprite(x, y, 'item');
             }
             
-            // ТЕКСТ
-            scene.scoreText = scene.add.text(20, 20, '🏆 0', {
-                fontSize: '28px',
-                fill: '#f1c40f',
-                stroke: '#000',
-                strokeThickness: 4
-            }).setScrollFactor(0);
-            
-            scene.stressText = scene.add.text(config.width - 150, 20, '😫 0%', {
-                fontSize: '28px',
-                fill: '#2ecc71',
-                stroke: '#000',
-                strokeThickness: 4
-            }).setScrollFactor(0);
-            
-            // КНОПКИ ВНИЗУ
-            const btnY = config.height - 60;
-            const btnW = config.width / 4;
-            
-            const btns = [
-                { x: btnW * 0.5, text: '👊', color: 0xe74c3c },
-                { x: btnW * 1.5, text: '☕', color: 0x8B4513 },
-                { x: btnW * 2.5, text: '😡', color: 0xf39c12 },
-                { x: btnW * 3.5, text: '🏠', color: 0x3498db }
-            ];
-            
-            btns.forEach(btn => {
-                const bg = scene.add.circle(btn.x, btnY, 30, btn.color)
-                    .setInteractive({ useHandCursor: true })
-                    .setScrollFactor(0)
-                    .setDepth(1000);
-                
-                scene.add.text(btn.x, btnY, btn.text, {
-                    fontSize: '28px'
-                }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
-                
-                bg.on('pointerdown', () => {
-                    if(btn.text === '🏠') returnToMenu();
-                });
+            // Текст
+            scene.add.text(10, 10, 'Очки: 0', { 
+                fontSize: '24px', 
+                fill: '#fff' 
             });
             
-            console.log('Игра создана');
+            console.log('Create завершен');
         }
         
-        function update() {
-            // Игровая логика
-        }
-        
-        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
-        function returnToMenu() {
-            if(game) {
+        // ========== ВОЗВРАТ В МЕНЮ ==========
+        window.returnToMenu = function() {
+            if (game) {
                 game.destroy(true);
                 game = null;
             }
             
-            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('game').style.display = 'none';
             document.getElementById('menu').style.display = 'flex';
-        }
-        
-        // ==================== ЗАПУСК ====================
-        window.onload = function() {
-            // Скрываем загрузку через 1 секунду
-            setTimeout(() => {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('menu').style.display = 'flex';
-            }, 1000);
         };
     </script>
 </body>
 </html>
-
