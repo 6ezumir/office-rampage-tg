@@ -1,49 +1,56 @@
-// Telegram Mini App инициализация
-console.log('🔧 Загрузка Telegram Mini App...');
+// ==================== TELEGRAM MINI APP INIT ====================
+console.log('🔧 Инициализация Telegram Mini App...');
 
 const tg = window.Telegram?.WebApp;
 
 if (tg) {
     console.log('✅ Telegram Mini App обнаружен!');
     
-    // Настройки для Telegram
+    // Настройки
     tg.ready();
-    tg.expand(); // Полный экран
+    tg.expand();
+    tg.disableVerticalSwipes();
     
-    // Сохраняем данные пользователя
+    // Данные пользователя
     window.TelegramApp = {
         user: tg.initDataUnsafe?.user,
-        userName: tg.initDataUnsafe?.user?.first_name || 'Офисный Герой',
+        userName: tg.initDataUnsafe?.user?.first_name || 
+                 tg.initDataUnsafe?.user?.username || 
+                 'Игрок',
         userId: tg.initDataUnsafe?.user?.id || Date.now(),
         tg: tg,
         platform: tg.platform || 'unknown'
     };
     
-    console.log(`👤 Игрок Telegram: ${window.TelegramApp.userName}`);
+    console.log(`👤 Игрок: ${window.TelegramApp.userName}`);
     
-    // Настройка кнопки
-    tg.MainButton.setText('🎮 ПОДЕЛИТЬСЯ РЕЗУЛЬТАТОМ');
+    // Главная кнопка
+    tg.MainButton.setText('📤 ПОДЕЛИТЬСЯ');
     tg.MainButton.hide();
     
     tg.MainButton.onClick(() => {
         const score = window.gameScore || 0;
-        const stress = window.gameStress || 0;
+        const character = window.currentCharacter || 'worker';
         
         tg.sendData(JSON.stringify({
             action: 'share_score',
             score: score,
-            stress: stress,
+            character: character,
             player: window.TelegramApp.userName,
             time: new Date().toISOString()
         }));
         
-        tg.showAlert(`✅ Результат отправлен!\n${score} очков`);
+        tg.HapticFeedback?.impactOccurred('medium');
+        tg.showAlert(`✅ Результат отправлен!\nОчков: ${score}`);
+        tg.MainButton.hide();
     });
     
     // Вибрация
     window.vibrate = function(type = 'medium') {
         if (tg.HapticFeedback) {
             tg.HapticFeedback.impactOccurred(type);
+        } else if (navigator.vibrate) {
+            navigator.vibrate(type === 'light' ? 20 : type === 'medium' ? 50 : 100);
         }
     };
     
@@ -53,15 +60,20 @@ if (tg) {
     // Заглушки для браузера
     window.TelegramApp = {
         userName: 'Тестовый Игрок',
+        userId: 12345,
         tg: {
-            sendData: (data) => console.log('Telegram sendData:', data),
-            showAlert: (msg) => alert('Telegram: ' + msg),
+            sendData: (data) => {
+                console.log('Telegram sendData:', data);
+                alert('✅ Результат отправлен! (тестовый режим)');
+            },
+            showAlert: (msg) => alert(msg),
             MainButton: {
                 setText: () => {},
                 show: () => {},
                 hide: () => {},
                 onClick: () => {}
-            }
+            },
+            HapticFeedback: null
         }
     };
     
@@ -69,3 +81,6 @@ if (tg) {
         if (navigator.vibrate) navigator.vibrate(50);
     };
 }
+
+// Экспортируем
+window.playerName = window.TelegramApp.userName;
