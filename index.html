@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Office Rampage</title>
+    <title>OFFICE RAMPAGE - DELUXE</title>
     
     <!-- Telegram SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -12,346 +12,418 @@
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     
     <style>
-        /* ========== СТИЛИ ========== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
         
         body {
-            background: #1a1a2e;
+            background: #0a0a1a;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
         }
         
-        #loading, #menu, #game {
+        #game-container {
+            width: 100vw;
+            height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
         }
-        
-        #loading {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            z-index: 2000;
-        }
-        
-        #menu {
-            background: linear-gradient(135deg, #0f3460, #1a1a2e);
-            display: none;
-            z-index: 1500;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        
-        #game {
-            display: none;
-            z-index: 1000;
-        }
-        
-        h1 { font-size: 2.5em; margin-bottom: 20px; }
-        
-        .loading-logo {
-            font-size: 5em;
-            margin-bottom: 20px;
-            animation: bounce 1s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-        
-        .chars {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
-            max-width: 800px;
-            margin: 30px 0;
-        }
-        
-        .char {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 20px;
-            cursor: pointer;
-            text-align: center;
-            border: 3px solid transparent;
-            transition: all 0.3s;
-        }
-        
-        .char:hover { transform: translateY(-5px); background: rgba(255,255,255,0.15); }
-        .char.selected { border-color: #f1c40f; background: rgba(255,255,255,0.2); }
-        
-        .char-emoji { font-size: 3em; margin-bottom: 10px; }
-        .char-name { font-weight: bold; margin-bottom: 5px; }
-        
-        button {
-            padding: 15px 40px;
-            font-size: 1.2em;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin: 10px;
-        }
-        
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
-    <!-- ЗАГРУЗКА -->
-    <div id="loading">
-        <div class="loading-logo">🏢</div>
-        <h1>OFFICE RAMPAGE</h1>
-        <p>Загрузка...</p>
-    </div>
-    
-    <!-- МЕНЮ -->
-    <div id="menu">
-        <h1>ВЫБЕРИ ПЕРСОНАЖА</h1>
-        
-        <div class="chars">
-            <div class="char" onclick="selectChar('boss')">
-                <div class="char-emoji">👔</div>
-                <div class="char-name">БОСС</div>
-            </div>
-            <div class="char" onclick="selectChar('worker')">
-                <div class="char-emoji">👨‍💻</div>
-                <div class="char-name">ОФИСНЫЙ</div>
-            </div>
-            <div class="char" onclick="selectChar('cleaner')">
-                <div class="char-emoji">🧹</div>
-                <div class="char-name">УБОРЩИК</div>
-            </div>
-        </div>
-        
-        <button onclick="startGame()" id="startBtn" disabled>🎮 НАЧАТЬ ИГРУ</button>
-    </div>
-    
-    <!-- ИГРА -->
-    <div id="game"></div>
+    <div id="game-container"></div>
 
-    <!-- ========== ВЕСЬ JAVASCRIPT КОД ЗДЕСЬ ========== -->
     <script>
         // ==================== TELEGRAM ====================
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.ready();
             tg.expand();
+            tg.setHeaderColor('#0a0a1a');
+            tg.setBackgroundColor('#0a0a1a');
         }
-        
-        // ==================== ПЕРЕМЕННЫЕ ====================
-        let selectedChar = null;
-        let game = null;
-        let score = 0;
-        let stress = 0;
-        
-        // ==================== ДАННЫЕ ПЕРСОНАЖЕЙ ====================
-        const characters = {
-            boss: { name: 'БОСС', color: 0xc0392b, speed: 150, damage: 50 },
-            worker: { name: 'ОФИСНЫЙ', color: 0x3498db, speed: 200, damage: 30 },
-            cleaner: { name: 'УБОРЩИК', color: 0x27ae60, speed: 180, damage: 25 }
+
+        // ==================== КОНФИГ ====================
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-container',
+            backgroundColor: '#0a0a1a',
+            pixelArt: true,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: 0,
+                    debug: false
+                }
+            },
+            scale: {
+                mode: Phaser.Scale.FIT,
+                autoCenter: Phaser.Scale.CENTER_BOTH
+            },
+            scene: [MenuScene, GameScene]
         };
-        
-        // ==================== ДАННЫЕ ЛОКАЦИЙ ====================
-        const locations = {
-            office: {
-                name: '🏢 ОФИС',
-                color: 0x2c3e50,
-                objects: [
-                    { type: 'printer', x: 200, y: 200, health: 100, color: 0xff6b6b },
-                    { type: 'computer', x: 400, y: 150, health: 80, color: 0x4ecdc4 },
-                    { type: 'chair', x: 300, y: 300, health: 50, color: 0x1abc9c }
-                ]
+
+        // ==================== СЦЕНА МЕНЮ ====================
+        class MenuScene extends Phaser.Scene {
+            constructor() {
+                super('MenuScene');
             }
-        };
-        
-        let currentLocation = 'office';
-        let playerStats = {};
-        
-        // ==================== ФУНКЦИИ МЕНЮ ====================
-        window.selectChar = function(char) {
-            selectedChar = char;
-            playerStats = characters[char];
             
-            document.querySelectorAll('.char').forEach(el => {
-                el.classList.remove('selected');
-            });
-            event.currentTarget.classList.add('selected');
-            
-            document.getElementById('startBtn').disabled = false;
-        };
-        
-        window.startGame = function() {
-            if (!selectedChar) return;
-            
-            document.getElementById('menu').style.display = 'none';
-            document.getElementById('game').style.display = 'block';
-            document.getElementById('game').innerHTML = '';
-            
-            initGame();
-        };
-        
-        // ==================== ИНИЦИАЛИЗАЦИЯ ИГРЫ ====================
-        function initGame() {
-            const config = {
-                type: Phaser.AUTO,
-                width: window.innerWidth,
-                height: window.innerHeight,
-                parent: 'game',
-                backgroundColor: locations[currentLocation].color,
-                scene: { preload, create, update },
-                scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
-            };
-            
-            game = new Phaser.Game(config);
-        }
-        
-        // ==================== СЦЕНЫ PHASER ====================
-        function preload() {
-            const scene = this;
-            const location = locations[currentLocation];
-            
-            // Текстура пола
-            const floorTex = scene.add.graphics();
-            floorTex.fillStyle(location.color, 1);
-            floorTex.fillRect(0, 0, 64, 64);
-            floorTex.generateTexture('floor', 64, 64);
-            floorTex.destroy();
-            
-            // Текстура игрока
-            const playerTex = scene.add.graphics();
-            playerTex.fillStyle(playerStats.color, 1);
-            playerTex.fillCircle(40, 40, 35);
-            playerTex.fillStyle(0xffffff, 1);
-            playerTex.fillCircle(30, 30, 8);
-            playerTex.fillCircle(50, 30, 8);
-            playerTex.generateTexture('player', 80, 80);
-            playerTex.destroy();
-            
-            // Текстуры предметов
-            location.objects.forEach((obj, index) => {
-                const tex = scene.add.graphics();
-                tex.fillStyle(obj.color, 1);
-                tex.fillCircle(40, 40, 30);
-                tex.generateTexture(`item_${index}`, 80, 80);
-                tex.destroy();
-            });
-        }
-        
-        function create() {
-            const scene = this;
-            const location = locations[currentLocation];
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            
-            // Пол
-            scene.add.tileSprite(0, 0, width, height, 'floor')
-                .setOrigin(0)
-                .setTileScale(2);
-            
-            // Игрок
-            scene.player = scene.add.sprite(300, 300, 'player');
-            scene.player.setScale(1.2);
-            
-            // Предметы
-            scene.objects = [];
-            location.objects.forEach((obj, index) => {
-                const item = scene.add.sprite(obj.x, obj.y, `item_${index}`);
-                item.setInteractive();
-                item.setData('health', obj.health);
-                item.setData('type', obj.type);
-                scene.objects.push(item);
-            });
-            
-            // UI
-            scene.scoreText = scene.add.text(20, 20, '💰 0', {
-                fontSize: '24px',
-                fill: '#f1c40f',
-                stroke: '#000',
-                strokeThickness: 4
-            }).setScrollFactor(0);
-            
-            scene.stressText = scene.add.text(width - 120, 20, '😫 0%', {
-                fontSize: '24px',
-                fill: '#2ecc71',
-                stroke: '#000',
-                strokeThickness: 4
-            }).setScrollFactor(0);
-            
-            // Управление
-            scene.input.on('pointerdown', (pointer) => {
-                const target = pointer.targetObject;
+            create() {
+                // 1. ГРАДИЕНТНЫЙ ФОН
+                const bg = this.add.graphics();
+                bg.fillGradientStyle(0x0f0f2f, 0x0f0f2f, 0x1a1a3f, 0x1a1a3f, 1, 1, 1, 1);
+                bg.fillRect(0, 0, 800, 600);
                 
-                if (!target) {
-                    // Движение
-                    scene.tweens.add({
-                        targets: scene.player,
-                        x: pointer.x,
-                        y: pointer.y,
-                        duration: 1000
+                // 2. АНИМИРОВАННЫЕ ЧАСТИЦЫ (ПЫЛЬ)
+                for(let i = 0; i < 50; i++) {
+                    const x = Math.random() * 800;
+                    const y = Math.random() * 600;
+                    const particle = this.add.circle(x, y, 2, 0x88aaff, 0.3);
+                    
+                    this.tweens.add({
+                        targets: particle,
+                        y: y - 100,
+                        alpha: 0,
+                        duration: 5000 + Math.random() * 5000,
+                        repeat: -1,
+                        ease: 'Linear'
                     });
                 }
-            });
-            
-            scene.input.on('gameobjectdown', (pointer, obj) => {
-                // Атака предмета
-                const health = obj.getData('health') - playerStats.damage;
-                obj.setData('health', health);
                 
-                scene.tweens.add({
-                    targets: obj,
-                    scaleX: 1.5,
-                    scaleY: 0.7,
-                    duration: 100,
-                    yoyo: true
+                // 3. ЗАГОЛОВОК С СИЯНИЕМ
+                const title = this.add.text(400, 120, 'OFFICE', {
+                    fontSize: '82px',
+                    fontFamily: 'Arial Black',
+                    color: '#ffffff',
+                    stroke: '#ff3366',
+                    strokeThickness: 8,
+                    shadow: {
+                        offsetX: 5,
+                        offsetY: 5,
+                        color: '#ff3366',
+                        blur: 10,
+                        fill: true
+                    }
+                }).setOrigin(0.5);
+                
+                const title2 = this.add.text(400, 190, 'RAMPAGE', {
+                    fontSize: '82px',
+                    fontFamily: 'Arial Black',
+                    color: '#ffffff',
+                    stroke: '#33ccff',
+                    strokeThickness: 8,
+                    shadow: {
+                        offsetX: 5,
+                        offsetY: 5,
+                        color: '#33ccff',
+                        blur: 10,
+                        fill: true
+                    }
+                }).setOrigin(0.5);
+                
+                // 4. ПУЛЬСИРУЮЩИЙ КРУГ
+                const circle = this.add.circle(400, 350, 100, 0xff3366, 0.2);
+                this.tweens.add({
+                    targets: circle,
+                    scale: 1.5,
+                    alpha: 0,
+                    duration: 2000,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
                 });
                 
-                if (health <= 0) {
-                    score += 50;
-                    obj.destroy();
-                }
+                // 5. ПЕРСОНАЖИ В КРУГЕ
+                const chars = ['👔', '👨‍💻', '🧹', '💻', '📊'];
+                chars.forEach((char, i) => {
+                    const angle = (i / chars.length) * Math.PI * 2;
+                    const x = 400 + Math.cos(angle) * 120;
+                    const y = 350 + Math.sin(angle) * 120;
+                    
+                    const emoji = this.add.text(x, y, char, {
+                        fontSize: '48px'
+                    }).setOrigin(0.5);
+                    
+                    this.tweens.add({
+                        targets: emoji,
+                        scale: 1.2,
+                        duration: 1000,
+                        yoyo: true,
+                        repeat: -1,
+                        delay: i * 200
+                    });
+                });
                 
-                stress = Math.min(100, stress + 2);
-                updateUI(scene);
-            });
-        }
-        
-        function update() {
-            const scene = this;
-            
-            if (Math.random() < 0.01) {
-                stress = Math.min(100, stress + 0.5);
-                updateUI(scene);
+                // 6. КНОПКА START
+                const startBtn = this.add.rectangle(400, 480, 250, 70, 0x33ccff)
+                    .setInteractive({ useHandCursor: true })
+                    .setStrokeStyle(4, 0xffffff);
+                
+                const startText = this.add.text(400, 480, '▶ НАЧАТЬ', {
+                    fontSize: '32px',
+                    fontFamily: 'Arial Black',
+                    color: '#ffffff'
+                }).setOrigin(0.5);
+                
+                // Анимация кнопки
+                this.tweens.add({
+                    targets: [startBtn, startText],
+                    scale: 1.1,
+                    duration: 800,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+                
+                startBtn.on('pointerdown', () => {
+                    this.cameras.main.fade(500, 0, 0, 0);
+                    this.time.delayedCall(500, () => {
+                        this.scene.start('GameScene');
+                    });
+                });
+                
+                // 7. ВЕРСИЯ
+                this.add.text(10, 570, 'v2.0 DELUXE', {
+                    fontSize: '16px',
+                    color: '#ffffff',
+                    alpha: 0.5
+                });
             }
         }
-        
-        function updateUI(scene) {
-            scene.scoreText.setText('💰 ' + score);
+
+        // ==================== СЦЕНА ИГРЫ ====================
+        class GameScene extends Phaser.Scene {
+            constructor() {
+                super('GameScene');
+                
+                // КАРТА ОФИСА (0 - пусто, 1 - стена, 2 - пол, 3 - стол, 4 - стул, 5 - комп)
+                this.map = [
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+                    [1,2,3,2,4,2,3,2,4,2,2,3,2,4,2,3,2,4,2,1],
+                    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+                    [1,2,4,2,3,2,4,2,3,2,2,4,2,3,2,4,2,3,2,1],
+                    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+                    [1,2,5,2,5,2,5,2,5,2,2,5,2,5,2,5,2,5,2,1],
+                    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+                    [1,2,4,2,3,2,4,2,3,2,2,4,2,3,2,4,2,3,2,1],
+                    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+                    [1,2,3,2,4,2,3,2,4,2,2,3,2,4,2,3,2,4,2,1],
+                    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+                ];
+                
+                this.tileSize = 32;
+                this.player = null;
+                this.cursors = null;
+            }
             
-            let color = stress > 70 ? '#e74c3c' : stress > 40 ? '#f39c12' : '#2ecc71';
-            scene.stressText.setStyle({ fill: color });
-            scene.stressText.setText('😫 ' + Math.floor(stress) + '%');
+            preload() {
+                // 1. СОЗДАЕМ ТАЙЛЫ (РИСУЕМ 1 РАЗ)
+                const graphics = this.add.graphics();
+                
+                // Тайл пола
+                graphics.fillStyle(0x2c3e50, 1);
+                graphics.fillRect(0, 0, 32, 32);
+                graphics.lineStyle(2, 0x34495e, 1);
+                graphics.strokeRect(0, 0, 32, 32);
+                graphics.generateTexture('floor', 32, 32);
+                
+                // Тайл стены
+                graphics.clear();
+                graphics.fillStyle(0x7f8c8d, 1);
+                graphics.fillRect(0, 0, 32, 32);
+                graphics.lineStyle(4, 0x95a5a6, 1);
+                graphics.strokeRect(0, 0, 32, 32);
+                graphics.fillStyle(0x34495e, 1);
+                graphics.fillCircle(16, 16, 6);
+                graphics.generateTexture('wall', 32, 32);
+                
+                // Тайл стола
+                graphics.clear();
+                graphics.fillStyle(0x8B4513, 1);
+                graphics.fillRect(4, 20, 24, 8);
+                graphics.fillStyle(0xCD853F, 1);
+                graphics.fillRect(8, 8, 16, 12);
+                graphics.generateTexture('desk', 32, 32);
+                
+                // Тайл стула
+                graphics.clear();
+                graphics.fillStyle(0xe67e22, 1);
+                graphics.fillCircle(16, 16, 8);
+                graphics.fillStyle(0xd35400, 1);
+                graphics.fillRect(12, 20, 8, 8);
+                graphics.generateTexture('chair', 32, 32);
+                
+                // Тайл компьютера
+                graphics.clear();
+                graphics.fillStyle(0x3498db, 1);
+                graphics.fillRect(8, 8, 16, 16);
+                graphics.fillStyle(0x2980b9, 1);
+                graphics.fillRect(12, 4, 8, 4);
+                graphics.fillStyle(0xecf0f1, 1);
+                graphics.fillRect(10, 18, 12, 2);
+                graphics.generateTexture('computer', 32, 32);
+                
+                graphics.destroy();
+                
+                // Создаем игрока
+                const playerG = this.add.graphics();
+                playerG.fillStyle(0x3498db, 1);
+                playerG.fillCircle(16, 16, 12);
+                playerG.fillStyle(0xffffff, 1);
+                playerG.fillCircle(10, 12, 3);
+                playerG.fillCircle(22, 12, 3);
+                playerG.generateTexture('player', 32, 32);
+                playerG.destroy();
+            }
+            
+            create() {
+                // 1. РИСУЕМ КАРТУ ИЗ ТАЙЛОВ
+                for(let row = 0; row < this.map.length; row++) {
+                    for(let col = 0; col < this.map[row].length; col++) {
+                        const x = col * this.tileSize;
+                        const y = row * this.tileSize;
+                        const tile = this.map[row][col];
+                        
+                        switch(tile) {
+                            case 1:
+                                this.add.image(x, y, 'wall').setOrigin(0);
+                                break;
+                            case 2:
+                                this.add.image(x, y, 'floor').setOrigin(0);
+                                break;
+                            case 3:
+                                this.add.image(x, y, 'floor').setOrigin(0);
+                                this.add.image(x, y, 'desk').setOrigin(0);
+                                break;
+                            case 4:
+                                this.add.image(x, y, 'floor').setOrigin(0);
+                                this.add.image(x, y, 'chair').setOrigin(0);
+                                break;
+                            case 5:
+                                this.add.image(x, y, 'floor').setOrigin(0);
+                                this.add.image(x, y, 'computer').setOrigin(0);
+                                break;
+                        }
+                    }
+                }
+                
+                // 2. СОЗДАЕМ ИГРОКА
+                this.player = this.physics.add.sprite(300, 300, 'player');
+                this.player.setCollideWorldBounds(true);
+                this.player.setData('speed', 200);
+                
+                // 3. УПРАВЛЕНИЕ
+                this.cursors = this.input.keyboard.createCursorKeys();
+                
+                // 4. КАМЕРА
+                this.cameras.main.setBounds(0, 0, 20 * 32, 13 * 32);
+                this.cameras.main.startFollow(this.player);
+                this.cameras.main.setZoom(2);
+                
+                // 5. ИНТЕРФЕЙС
+                const uiBar = this.add.rectangle(400, 20, 400, 40, 0x000000, 0.7)
+                    .setScrollFactor(0);
+                
+                this.scoreText = this.add.text(300, 20, '💰 0', {
+                    fontSize: '24px',
+                    fill: '#f1c40f',
+                    stroke: '#000',
+                    strokeThickness: 4
+                }).setScrollFactor(0);
+                
+                // 6. ПРЕДМЕТЫ ДЛЯ ВЗАИМОДЕЙСТВИЯ
+                this.items = this.physics.add.group();
+                
+                // Добавляем предметы на карту
+                for(let row = 0; row < this.map.length; row++) {
+                    for(let col = 0; col < this.map[row].length; col++) {
+                        const tile = this.map[row][col];
+                        if(tile >= 3) {
+                            const x = col * this.tileSize + 16;
+                            const y = row * this.tileSize + 16;
+                            const item = this.items.create(x, y, 
+                                tile === 3 ? 'desk' : 
+                                tile === 4 ? 'chair' : 'computer'
+                            );
+                            item.setData('health', 100);
+                            item.setData('type', 
+                                tile === 3 ? 'desk' : 
+                                tile === 4 ? 'chair' : 'computer'
+                            );
+                        }
+                    }
+                }
+                
+                // 7. ВЗАИМОДЕЙСТВИЕ
+                this.input.on('gameobjectdown', (pointer, obj) => {
+                    if(obj.texture.key !== 'player') {
+                        // Анимация удара
+                        this.tweens.add({
+                            targets: obj,
+                            scaleX: 1.3,
+                            scaleY: 0.7,
+                            duration: 100,
+                            yoyo: true
+                        });
+                        
+                        // Урон
+                        const health = obj.getData('health') - 30;
+                        obj.setData('health', health);
+                        
+                        if(health <= 0) {
+                            obj.destroy();
+                            this.score += 10;
+                            this.scoreText.setText('💰 ' + this.score);
+                            
+                            // Эффект взрыва
+                            const particles = this.add.particles(obj.x, obj.y, 'computer', {
+                                speed: { min: -100, max: 100 },
+                                scale: { start: 0.5, end: 0 },
+                                quantity: 10,
+                                lifespan: 500
+                            });
+                            
+                            this.time.delayedCall(500, () => particles.destroy());
+                        }
+                    }
+                });
+                
+                this.score = 0;
+            }
+            
+            update() {
+                if(!this.player) return;
+                
+                // Движение игрока
+                if(this.cursors.left.isDown) {
+                    this.player.setVelocityX(-this.player.getData('speed'));
+                } else if(this.cursors.right.isDown) {
+                    this.player.setVelocityX(this.player.getData('speed'));
+                } else {
+                    this.player.setVelocityX(0);
+                }
+                
+                if(this.cursors.up.isDown) {
+                    this.player.setVelocityY(-this.player.getData('speed'));
+                } else if(this.cursors.down.isDown) {
+                    this.player.setVelocityY(this.player.getData('speed'));
+                } else {
+                    this.player.setVelocityY(0);
+                }
+            }
         }
-        
+
         // ==================== ЗАПУСК ====================
-        window.onload = function() {
-            setTimeout(() => {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('menu').style.display = 'flex';
-            }, 1500);
+        window.onload = () => {
+            new Phaser.Game(config);
         };
     </script>
 </body>
 </html>
-
