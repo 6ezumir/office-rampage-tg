@@ -193,11 +193,10 @@ class MorningScene extends Phaser.Scene {
         });
         
         wakeBtn.on('pointerdown', () => {
-            this.cameras.main.fade(500, 0, 0, 0);
-            this.time.delayedCall(500, () => {
-                this.scene.start('OfficeScene');
-            });
-        });
+    console.log('🔄 Переход в офис');
+    // Простой переход без анимаций для Telegram
+    this.scene.start('OfficeScene');
+});
         
         sickBtn.on('pointerdown', () => {
             // Бонус за больничный
