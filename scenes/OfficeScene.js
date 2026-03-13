@@ -29,9 +29,7 @@ class OfficeScene extends Phaser.Scene {
         this.cursors = null;
     }
 
-    preload() {
-        this.createTextures();
-    }
+    // УДАЛЯЕМ preload() - ОН НЕ НУЖЕН
 
     createTextures() {
         const graphics = this.add.graphics();
@@ -117,6 +115,9 @@ class OfficeScene extends Phaser.Scene {
         const height = this.cameras.main.height;
         const centerX = width / 2;
         const centerY = height / 2;
+        
+        // ВАЖНО: СНАЧАЛА СОЗДАЕМ ТЕКСТУРЫ!
+        this.createTextures();
         
         // Масштабируем под экран
         const scale = Math.min(width / 1024, height / 768);
