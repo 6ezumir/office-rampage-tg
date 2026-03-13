@@ -1,26 +1,17 @@
-// Определяем размеры экрана телефона
+// Размеры экрана телефона
 const screenWidth = window.innerWidth;
 const screenHeight = window.innerHeight;
 
-// Рассчитываем размер игры под экран (но сохраняем пропорции)
-let gameWidth, gameHeight;
-
-if (screenWidth / screenHeight > 800 / 600) {
-    // Экран шире, чем пропорции игры
-    gameHeight = screenHeight;
-    gameWidth = (800 / 600) * screenHeight;
-} else {
-    // Экран выше, чем пропорции игры
-    gameWidth = screenWidth;
-    gameHeight = (600 / 800) * screenWidth;
-}
-
 const config = {
     type: Phaser.AUTO,
-    width: gameWidth,
-    height: gameHeight,
+    width: screenWidth,
+    height: screenHeight,
     parent: 'game-container',
-    backgroundColor: '#2c3e50',
+    backgroundColor: '#2c3e50',  // Это и есть фон на весь экран!
+    scale: {
+        mode: Phaser.Scale.NONE,  // Не масштабируем, берём реальные пиксели
+        autoCenter: Phaser.Scale.NO_CENTER
+    },
     scene: {
         preload: preload,
         create: create
@@ -28,6 +19,7 @@ const config = {
 };
 
 function preload() {
+    // Создаём текстуру
     const graphics = this.add.graphics();
     graphics.fillStyle(0x3498db, 1);
     graphics.fillCircle(100, 100, 50);
@@ -36,17 +28,17 @@ function preload() {
 }
 
 function create() {
-    // Ставим игрока по центру
-    this.add.image(gameWidth / 2, gameHeight / 2, 'player');
+    // Ставим игрока по центру экрана
+    this.add.image(screenWidth / 2, screenHeight / 2, 'player');
     
-    // Текст по центру
-    this.add.text(gameWidth / 2 - 150, gameHeight / 2 - 100, 'Офисный кошмар', {
-        fontSize: Math.floor(gameWidth / 20) + 'px',
+    // Текст
+    this.add.text(screenWidth / 2 - 150, screenHeight / 2 - 100, 'Офисный кошмар', {
+        fontSize: '32px',
         color: '#ffffff'
     });
     
-    this.add.text(gameWidth / 2 - 120, gameHeight / 2 - 50, 'Игра запущена!', {
-        fontSize: Math.floor(gameWidth / 25) + 'px',
+    this.add.text(screenWidth / 2 - 120, screenHeight / 2 - 50, 'Игра запущена!', {
+        fontSize: '24px',
         color: '#ffff00'
     });
 }
