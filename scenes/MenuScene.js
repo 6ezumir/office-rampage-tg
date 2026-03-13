@@ -1,4 +1,4 @@
-// ==================== СЦЕНА МЕНЮ ====================
+// ==================== МЕНЮ В СТИЛЕ "РАЗГРОМ" ====================
 
 class MenuScene extends Phaser.Scene {
     constructor() {
@@ -11,215 +11,250 @@ class MenuScene extends Phaser.Scene {
         const centerX = width / 2;
         const centerY = height / 2;
         
-        // Масштабируем всё под экран
+        // Масштаб для адаптации
         const scale = Math.min(width / 800, height / 600);
-        const titleSize = Math.floor(64 * scale);
-        const buttonWidth = Math.floor(250 * scale);
-        const buttonHeight = Math.floor(50 * scale);
-        const buttonSpacing = Math.floor(70 * scale);
         
-        // 1. ГРАДИЕНТНЫЙ ФОН (НОЧНОЙ ОФИС)
+        // 1. РАЗРУШЕННЫЙ ФОН
         const bg = this.add.graphics();
-        bg.fillGradientStyle(0x0a0a1a, 0x0a0a1a, 0x1a1a3a, 0x1a1a3a, 1, 1, 1, 1);
+        bg.fillGradientStyle(0x1a1a2e, 0x1a1a2e, 0x16213e, 0x16213e, 1, 1, 1, 1);
         bg.fillRect(0, 0, width, height);
         
-        // 2. ОФИСНЫЙ ГОРИЗОНТ (ПИКСЕЛЬ-АРТ) - адаптивный
-        const buildingWidth = Math.floor(40 * scale);
-        const buildingHeight = Math.floor(120 * scale);
-        const windowSize = Math.floor(8 * scale);
+        // 2. ТРЕЩИНЫ НА ЭКРАНЕ (эффект разбитого стекла)
+        const cracks = this.add.graphics();
+        cracks.lineStyle(4 * scale, 0xffffff, 0.3);
         
+        // Рисуем случайные трещины
         for(let i = 0; i < 8; i++) {
-            const x = i * (width / 8);
+            const startX = Math.random() * width;
+            const startY = Math.random() * height;
+            cracks.beginPath();
+            cracks.moveTo(startX, startY);
             
-            // Здание
-            this.add.rectangle(x + buildingWidth/2, height - 150 * scale, 
-                              buildingWidth, buildingHeight, 0x2c3e50).setOrigin(0.5);
-            
-            // Окна
-            for(let w = 0; w < 3; w++) {
-                const windowY = height - 190 * scale + w * 25 * scale;
-                
-                // Рамка окна
-                this.add.rectangle(x + buildingWidth/4, windowY, 
-                                  windowSize * 1.5, windowSize * 2, 0x1a1a2e).setOrigin(0.5);
-                
-                // Свет в окне
-                if (Math.random() > 0.5) {
-                    this.add.rectangle(x + buildingWidth/4, windowY, 
-                                      windowSize, windowSize * 1.5, 0xf1c40f).setOrigin(0.5);
-                } else {
-                    this.add.rectangle(x + buildingWidth * 0.75, windowY, 
-                                      windowSize, windowSize * 1.5, 0x3498db).setOrigin(0.5);
-                }
+            for(let j = 0; j < 5; j++) {
+                cracks.lineTo(
+                    startX + (Math.random() - 0.5) * 200 * scale,
+                    startY + (Math.random() - 0.5) * 200 * scale
+                );
             }
+            cracks.strokePath();
         }
         
-        // 3. ЗВЕЗДЫ (АНИМИРОВАННЫЕ) - адаптивные
-        for(let i = 0; i < 50; i++) {
+        // 3. РАЗЛЕТАЮЩИЕСЯ ЧАСТИЦЫ (бумага, пыль)
+        for(let i = 0; i < 30; i++) {
             const x = Math.random() * width;
-            const y = Math.random() * (height * 0.4);
-            const starSize = 1 + Math.random() * 2 * scale;
-            const star = this.add.circle(x, y, starSize, 0xffffff, 0.5 + Math.random() * 0.5);
+            const y = Math.random() * height;
+            const size = 5 * scale + Math.random() * 10 * scale;
             
-            this.tweens.add({
-                targets: star,
-                alpha: 0.2,
-                duration: 1000 + Math.random() * 2000,
-                yoyo: true,
-                repeat: -1
-            });
+            // Случайные формы (обрывки бумаги)
+            if (Math.random() > 0.5) {
+                const paper = this.add.rectangle(x, y, size, size * 0.7, 0xcccccc, 0.3);
+                paper.angle = Math.random() * 360;
+                
+                // Анимация парения
+                this.tweens.add({
+                    targets: paper,
+                    y: y + 50 * scale,
+                    x: x + 20 * scale,
+                    rotation: paper.angle + 45,
+                    alpha: 0.1,
+                    duration: 3000 + Math.random() * 2000,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+            } else {
+                const dot = this.add.circle(x, y, size * 0.3, 0xff3366, 0.2);
+                
+                this.tweens.add({
+                    targets: dot,
+                    y: y - 100 * scale,
+                    x: x + (Math.random() - 0.5) * 100 * scale,
+                    alpha: 0,
+                    duration: 2000 + Math.random() * 2000,
+                    repeat: -1,
+                    ease: 'Linear'
+                });
+            }
         }
         
-        // 4. ЛУНА - адаптивная
-        const moonX = Math.floor(100 * scale);
-        const moonY = Math.floor(80 * scale);
-        this.add.circle(moonX, moonY, 30 * scale, 0xfff5e6);
-        this.add.circle(moonX + 15 * scale, moonY - 10 * scale, 5 * scale, 0xcccccc);
+        // 4. РАЗРУШЕННАЯ ВЫВЕСКА
+        // Буквы падают/трясутся
+        const letters = [
+            { char: 'О', x: centerX - 200 * scale, y: centerY - 150 * scale, color: 0xff3366 },
+            { char: 'Ф', x: centerX - 120 * scale, y: centerY - 150 * scale, color: 0xff3366 },
+            { char: 'И', x: centerX - 40 * scale, y: centerY - 150 * scale, color: 0xff3366 },
+            { char: 'С', x: centerX + 40 * scale, y: centerY - 150 * scale, color: 0x33ccff },
+            { char: 'Н', x: centerX + 120 * scale, y: centerY - 150 * scale, color: 0x33ccff },
+            { char: 'Ы', x: centerX + 200 * scale, y: centerY - 150 * scale, color: 0x33ccff },
+            { char: 'Й', x: centerX + 280 * scale, y: centerY - 150 * scale, color: 0x33ccff }
+        ];
         
-        // 5. ЗАГОЛОВОК С СИЯНИЕМ - адаптивный
-        const title1 = this.add.text(centerX, centerY - 120 * scale, 'ОФИСНЫЙ', {
-            fontSize: Math.floor(64 * scale) + 'px',
-            fontFamily: 'Arial Black',
-            color: '#ffffff',
-            stroke: '#ff3366',
-            strokeThickness: Math.floor(6 * scale),
-            shadow: {
-                offsetX: 5 * scale,
-                offsetY: 5 * scale,
-                color: '#ff3366',
-                blur: 10 * scale,
-                fill: true
-            }
-        }).setOrigin(0.5);
-        
-        const title2 = this.add.text(centerX, centerY - 60 * scale, 'КОШМАР', {
-            fontSize: Math.floor(64 * scale) + 'px',
-            fontFamily: 'Arial Black',
-            color: '#ffffff',
-            stroke: '#33ccff',
-            strokeThickness: Math.floor(6 * scale),
-            shadow: {
-                offsetX: 5 * scale,
-                offsetY: 5 * scale,
-                color: '#33ccff',
-                blur: 10 * scale,
-                fill: true
-            }
-        }).setOrigin(0.5);
-        
-        // Анимация заголовка
-        this.tweens.add({
-            targets: [title1, title2],
-            y: '-=' + (5 * scale),
-            duration: 2000,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
+        letters.forEach(letter => {
+            const text = this.add.text(letter.x, letter.y, letter.char, {
+                fontSize: 64 * scale + 'px',
+                fontFamily: 'Arial Black',
+                color: '#ffffff',
+                stroke: Phaser.Display.Color.IntegerToColor(letter.color).rgba,
+                strokeThickness: 6 * scale,
+                shadow: {
+                    offsetX: 3 * scale,
+                    offsetY: 3 * scale,
+                    color: '#000',
+                    blur: 5 * scale,
+                    fill: true
+                }
+            }).setOrigin(0.5);
+            
+            // Каждая буква трясётся по-своему
+            this.tweens.add({
+                targets: text,
+                y: letter.y + (Math.random() * 10 - 5) * scale,
+                x: letter.x + (Math.random() * 10 - 5) * scale,
+                angle: Math.random() * 5 - 2.5,
+                duration: 200 + Math.random() * 300,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
         });
         
-        // 6. КНОПКИ МЕНЮ - адаптивные
+        // 5. РАЗБИТАЯ ТАБЛИЧКА "КОШМАР"
+        const nightmare = this.add.text(centerX, centerY - 50 * scale, 'КОШМАР', {
+            fontSize: 48 * scale + 'px',
+            fontFamily: 'Arial Black',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 8 * scale
+        }).setOrigin(0.5);
+        
+        // Эффект "дрожания"
+        this.tweens.add({
+            targets: nightmare,
+            angle: 2,
+            duration: 100,
+            yoyo: true,
+            repeat: -1
+        });
+        
+        // 6. РАЗРУШЕННЫЕ КНОПКИ
         const buttons = [
-            { text: '▶ НАЧАТЬ ДЕНЬ', y: centerY + 50 * scale, color: 0x33ccff, scene: 'MorningScene' },
-            { text: '📖 ИСТОРИЯ', y: centerY + 120 * scale, color: 0xff3366, scene: null },
-            { text: '⚙️ НАСТРОЙКИ', y: centerY + 190 * scale, color: 0x2ecc71, scene: null }
+            { text: '▶ НАЧАТЬ РАЗГРОМ', y: centerY + 100 * scale, color: 0xff3366, scene: 'MorningScene' },
+            { text: '📋 ИСТОРИЯ', y: centerY + 170 * scale, color: 0x33ccff, scene: null },
+            { text: '⚙️ НАСТРОЙКИ', y: centerY + 240 * scale, color: 0x2ecc71, scene: null }
         ];
         
         buttons.forEach(btn => {
-            // Контейнер для кнопки
-            const btnBg = this.add.rectangle(centerX, btn.y, buttonWidth, buttonHeight, btn.color)
-                .setInteractive({ useHandCursor: true })
-                .setStrokeStyle(Math.floor(2 * scale), 0xffffff);
+            // Кнопка с рваными краями
+            const btnBg = this.add.graphics();
+            btnBg.fillStyle(btn.color, 0.8);
+            btnBg.fillRoundedRect(
+                centerX - 150 * scale, 
+                btn.y - 25 * scale, 
+                300 * scale, 
+                50 * scale, 
+                10 * scale
+            );
             
+            // Эффект "разрушения" - белые линии
+            btnBg.lineStyle(2 * scale, 0xffffff, 0.5);
+            for(let i = 0; i < 5; i++) {
+                btnBg.beginPath();
+                btnBg.moveTo(
+                    centerX - 150 * scale + Math.random() * 300 * scale,
+                    btn.y - 25 * scale
+                );
+                btnBg.lineTo(
+                    centerX - 150 * scale + Math.random() * 300 * scale,
+                    btn.y + 25 * scale
+                );
+                btnBg.strokePath();
+            }
+            
+            // Текст кнопки
             const btnText = this.add.text(centerX, btn.y, btn.text, {
-                fontSize: Math.floor(24 * scale) + 'px',
+                fontSize: 24 * scale + 'px',
                 fontFamily: 'Arial Black',
                 color: '#ffffff'
             }).setOrigin(0.5);
             
-            // Эффекты при наведении
-            btnBg.on('pointerover', () => {
-                this.tweens.add({
-                    targets: [btnBg, btnText],
-                    scaleX: 1.1,
-                    scaleY: 1.1,
-                    duration: 200
-                });
+            // Зона клика (невидимая, но поверх кнопки)
+            const hitArea = this.add.rectangle(centerX, btn.y, 300 * scale, 50 * scale, 0x000000, 0)
+                .setInteractive({ useHandCursor: true });
+            
+            hitArea.on('pointerover', () => {
+                btnBg.clear();
+                btnBg.fillStyle(btn.color, 1);
+                btnBg.fillRoundedRect(centerX - 150 * scale, btn.y - 25 * scale, 300 * scale, 50 * scale, 10 * scale);
+                btnText.setScale(1.1);
             });
             
-            btnBg.on('pointerout', () => {
-                this.tweens.add({
-                    targets: [btnBg, btnText],
-                    scaleX: 1,
-                    scaleY: 1,
-                    duration: 200
-                });
+            hitArea.on('pointerout', () => {
+                btnBg.clear();
+                btnBg.fillStyle(btn.color, 0.8);
+                btnBg.fillRoundedRect(centerX - 150 * scale, btn.y - 25 * scale, 300 * scale, 50 * scale, 10 * scale);
+                btnText.setScale(1);
             });
             
-            btnBg.on('pointerdown', () => {
+            hitArea.on('pointerdown', () => {
                 if (btn.scene) {
-                    // Эффект затухания
-                    this.cameras.main.fade(500, 0, 0, 0);
+                    this.cameras.main.fadeOut(500);
                     this.time.delayedCall(500, () => {
                         this.scene.start(btn.scene);
                     });
                 } else {
-                    this.showMessage('Скоро будет...');
+                    this.showBrokenMessage(scale);
                 }
             });
         });
         
-        // 7. ИНФОРМАЦИЯ О СОХРАНЕНИИ
-        if (window.SaveSystem && window.SaveSystem.hasSave()) {
-            this.add.text(centerX, height - 50 * scale, '📀 Есть сохранение', {
-                fontSize: Math.floor(14 * scale) + 'px',
-                color: '#33ccff'
-            }).setOrigin(0.5);
-        }
+        // 7. РАЗБИТЫЕ ЧАСЫ (время до конца света)
+        const clockX = width - 100 * scale;
+        const clockY = 80 * scale;
         
-        // 8. ВЕРСИЯ
-        this.add.text(10 * scale, height - 20 * scale, 'v0.1 Alpha', {
-            fontSize: Math.floor(12 * scale) + 'px',
+        // Разбитый циферблат
+        this.add.circle(clockX, clockY, 30 * scale, 0x333333, 0.5);
+        this.add.circle(clockX, clockY, 25 * scale, 0x666666, 0.5);
+        
+        // Трещина на часах
+        const clockCrack = this.add.graphics();
+        clockCrack.lineStyle(3 * scale, 0xff0000, 0.5);
+        clockCrack.beginPath();
+        clockCrack.moveTo(clockX - 20 * scale, clockY - 15 * scale);
+        clockCrack.lineTo(clockX + 20 * scale, clockY + 15 * scale);
+        clockCrack.strokePath();
+        
+        // 8. ВЕРСИЯ (едва заметно)
+        this.add.text(10 * scale, height - 30 * scale, 'v0.1 - АЛЬФА-РАЗРУШЕНИЕ', {
+            fontSize: 12 * scale + 'px',
             color: '#ffffff',
-            alpha: 0.5
+            alpha: 0.3
         });
         
-        // 9. TELEGRAM
-        if (window.tg) {
-            this.add.text(width - 100 * scale, height - 20 * scale, 'TG Mini App', {
-                fontSize: Math.floor(12 * scale) + 'px',
-                color: '#33ccff',
-                alpha: 0.7
-            });
-        }
+        // 9. ПАСХАЛКА - летящий кирпич
+        const brick = this.add.rectangle(width - 50 * scale, 150 * scale, 20 * scale, 10 * scale, 0x8B4513);
+        brick.angle = 45;
         
-        // 10. ПАСХАЛКА (Котик в окне) - адаптивная
-        const catX = width * 0.8;
-        const catY = height * 0.15;
-        const catWindow = this.add.rectangle(catX, catY, 30 * scale, 40 * scale, 0xf1c40f).setOrigin(0.5);
-        this.add.text(catX - 5 * scale, catY - 8 * scale, '🐱', {
-            fontSize: Math.floor(16 * scale) + 'px'
-        });
-        
-        // Анимация котика
         this.tweens.add({
-            targets: catWindow,
-            y: catY + 5 * scale,
-            duration: 1000,
-            yoyo: true,
-            repeat: -1
+            targets: brick,
+            x: width,
+            y: height,
+            rotation: 360,
+            duration: 4000,
+            repeat: -1,
+            ease: 'Linear'
         });
     }
     
-    showMessage(text) {
+    showBrokenMessage(scale) {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        const scale = Math.min(width / 800, height / 600);
         
-        const msg = this.add.text(width / 2, height / 2, text, {
-            fontSize: Math.floor(24 * scale) + 'px',
+        const msg = this.add.text(width / 2, height / 2, '💥 РАЗРУШЕНО 💥\nСкоро починим...', {
+            fontSize: 24 * scale + 'px',
             color: '#ffffff',
-            backgroundColor: '#000000',
-            padding: { x: 20 * scale, y: 10 * scale }
+            backgroundColor: '#ff3366',
+            padding: { x: 20 * scale, y: 10 * scale },
+            align: 'center'
         }).setOrigin(0.5).setDepth(1000);
         
         this.tweens.add({
@@ -233,4 +268,4 @@ class MenuScene extends Phaser.Scene {
 }
 
 window.MenuScene = MenuScene;
-console.log('🎬 MenuScene загружен');
+console.log('💥 Разрушенное меню загружено');
