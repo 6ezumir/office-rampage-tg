@@ -30,7 +30,6 @@ class OfficeScene extends Phaser.Scene {
     }
 
     preload() {
-        // Текстуры создаются программно
         this.createTextures();
     }
 
@@ -116,54 +115,69 @@ class OfficeScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
         
-        // 1. СОЗДАЕМ КАРТУ
+        // Масштабируем под экран
+        const scale = Math.min(width / 1024, height / 768);
+        const baseTileSize = 32 * scale;
+        this.tileSize = baseTileSize;
+        
+        // 1. СОЗДАЕМ КАРТУ С МАСШТАБИРОВАНИЕМ
         for(let row = 0; row < this.map.length; row++) {
             for(let col = 0; col < this.map[row].length; col++) {
-                const x = col * this.tileSize;
-                const y = row * this.tileSize;
+                const x = col * baseTileSize;
+                const y = row * baseTileSize;
                 const tile = this.map[row][col];
                 
                 // Всегда ставим пол
-                this.add.image(x, y, 'floor').setOrigin(0);
+                this.add.image(x, y, 'floor').setOrigin(0).setScale(scale);
                 
                 // Стены
                 if (tile === 1) {
-                    this.add.image(x, y, 'wall').setOrigin(0);
+                    this.add.image(x, y, 'wall').setOrigin(0).setScale(scale);
                 }
             }
         }
         
-        // 2. СОЗДАЕМ ИГРОКА
-        this.player = new Player(this, 300, 300);
+        // 2. СОЗДАЕМ ИГРОКА (центрируем на карте)
+        const playerStartX = 10 * baseTileSize;
+        const playerStartY = 6 * baseTileSize;
+        this.player = new Player(this, playerStartX, playerStartY);
+        this.player.sprite.setScale(scale);
         
         // 3. СОЗДАЕМ БОССА
-        this.boss = new Boss(this, 600, 400);
+        this.boss = new Boss(this, 20 * baseTileSize, 10 * baseTileSize);
+        this.boss.sprite.setScale(scale);
         
         // 4. СОЗДАЕМ КОЛЛЕГУ
-        this.colleague = new Colleague(this, 200, 400);
+        this.colleague = new Colleague(this, 5 * baseTileSize, 8 * baseTileSize);
+        this.colleague.sprite.setScale(scale);
         
         // 5. СОЗДАЕМ ПРЕДМЕТЫ
         for(let row = 0; row < this.map.length; row++) {
             for(let col = 0; col < this.map[row].length; col++) {
-                const x = col * this.tileSize + 16;
-                const y = row * this.tileSize + 16;
+                const x = col * baseTileSize + baseTileSize/2;
+                const y = row * baseTileSize + baseTileSize/2;
                 const tile = this.map[row][col];
                 
                 switch(tile) {
                     case 3: // Стол
-                        this.add.image(x, y, 'desk');
+                        this.add.image(x, y, 'desk').setScale(scale);
                         break;
                     case 4: // Принтер
                         const printer = new Printer(this, x, y);
+                        printer.sprite.setScale(scale);
                         this.items.push(printer);
                         break;
                     case 5: // Кофемашина
                         const coffee = new CoffeeMachine(this, x, y);
+                        coffee.sprite.setScale(scale);
                         this.items.push(coffee);
                         break;
                     case 6: // Печеньки
                         const cookies = new Cookies(this, x, y);
+                        cookies.sprite.setScale(scale);
                         this.items.push(cookies);
                         break;
                 }
@@ -171,9 +185,9 @@ class OfficeScene extends Phaser.Scene {
         }
         
         // 6. НАСТРАИВАЕМ КАМЕРУ
-        this.cameras.main.setBounds(0, 0, 25 * 32, 13 * 32);
+        this.cameras.main.setBounds(0, 0, this.map[0].length * baseTileSize, this.map.length * baseTileSize);
         this.cameras.main.startFollow(this.player.sprite);
-        this.cameras.main.setZoom(2);
+        this.cameras.main.setZoom(1.5);
         
         // 7. УПРАВЛЕНИЕ
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -184,7 +198,6 @@ class OfficeScene extends Phaser.Scene {
         // 9. ОБРАБОТЧИК ТАЧЕЙ
         this.input.on('pointerdown', (pointer) => {
             if (!pointer.targetObject) {
-                // Движение к месту тапа
                 this.player.moveTo(pointer.worldX, pointer.worldY);
             }
         });
@@ -197,59 +210,66 @@ class OfficeScene extends Phaser.Scene {
 
     createUI() {
         const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        const scale = Math.min(width / 1024, height / 768);
         
-        // Верхняя панель
-        const panel = this.add.rectangle(0, 0, width, 60, 0x000000, 0.7)
+        // Верхняя панель (адаптивная)
+        const panelHeight = Math.floor(60 * scale);
+        const panel = this.add.rectangle(0, 0, width, panelHeight, 0x000000, 0.7)
             .setOrigin(0)
             .setScrollFactor(0);
         
+        const fontSize = Math.floor(20 * scale);
+        const smallFont = Math.floor(16 * scale);
+        
         // Очки
-        this.scoreText = this.add.text(10, 10, '🏆 0', {
-            fontSize: '20px',
+        this.scoreText = this.add.text(10 * scale, 10 * scale, '🏆 0', {
+            fontSize: fontSize + 'px',
             color: '#f1c40f',
             stroke: '#000000',
-            strokeThickness: 2
+            strokeThickness: Math.floor(2 * scale)
         }).setScrollFactor(0);
         
         // Стресс
-        this.stressText = this.add.text(10, 35, '😫 0%', {
-            fontSize: '20px',
+        this.stressText = this.add.text(10 * scale, 35 * scale, '😫 0%', {
+            fontSize: fontSize + 'px',
             color: '#2ecc71',
             stroke: '#000000',
-            strokeThickness: 2
+            strokeThickness: Math.floor(2 * scale)
         }).setScrollFactor(0);
         
         // Энергия
-        this.energyText = this.add.text(150, 10, '⚡ 100%', {
-            fontSize: '20px',
+        this.energyText = this.add.text(150 * scale, 10 * scale, '⚡ 100%', {
+            fontSize: fontSize + 'px',
             color: '#f39c12',
             stroke: '#000000',
-            strokeThickness: 2
+            strokeThickness: Math.floor(2 * scale)
         }).setScrollFactor(0);
         
         // Роман
-        this.romanceText = this.add.text(150, 35, '💕 0%', {
-            fontSize: '20px',
+        this.romanceText = this.add.text(150 * scale, 35 * scale, '💕 0%', {
+            fontSize: fontSize + 'px',
             color: '#ff69b4',
             stroke: '#000000',
-            strokeThickness: 2
+            strokeThickness: Math.floor(2 * scale)
         }).setScrollFactor(0);
         
         // Время
-        this.timeText = this.add.text(width - 100, 10, '09:00', {
-            fontSize: '24px',
+        this.timeText = this.add.text(width - 100 * scale, 10 * scale, '09:00', {
+            fontSize: Math.floor(24 * scale) + 'px',
             color: '#ffffff',
             stroke: '#000000',
-            strokeThickness: 2
+            strokeThickness: Math.floor(2 * scale)
         }).setScrollFactor(0);
         
-        // Кнопка меню
-        const menuBtn = this.add.circle(width - 30, 30, 15, 0xff3366)
+        // Кнопка меню (адаптивная)
+        const btnSize = Math.floor(30 * scale);
+        const menuBtn = this.add.circle(width - btnSize, btnSize, btnSize/2, 0xff3366)
             .setInteractive({ useHandCursor: true })
             .setScrollFactor(0);
         
-        this.add.text(width - 30, 30, '🏠', {
-            fontSize: '16px'
+        this.add.text(width - btnSize, btnSize, '🏠', {
+            fontSize: btnSize/2 + 'px'
         }).setOrigin(0.5).setScrollFactor(0);
         
         menuBtn.on('pointerdown', () => {
@@ -297,6 +317,8 @@ class OfficeScene extends Phaser.Scene {
     }
 
     updateUI() {
+        const scale = Math.min(this.cameras.main.width / 1024, this.cameras.main.height / 768);
+        
         if (window.GameState) {
             this.scoreText.setText(`🏆 ${window.GameState.score || 0}`);
             
@@ -325,36 +347,37 @@ class OfficeScene extends Phaser.Scene {
     showEndOfDay() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+        const scale = Math.min(width / 1024, height / 768);
         
-        const panel = this.add.rectangle(width / 2, height / 2, 400, 300, 0x000000, 0.9)
+        const panel = this.add.rectangle(width / 2, height / 2, 400 * scale, 300 * scale, 0x000000, 0.9)
             .setScrollFactor(0);
         
-        this.add.text(width / 2, height / 2 - 100, '🏁 РАБОЧИЙ ДЕНЬ ОКОНЧЕН!', {
-            fontSize: '24px',
+        this.add.text(width / 2, height / 2 - 100 * scale, '🏁 РАБОЧИЙ ДЕНЬ ОКОНЧЕН!', {
+            fontSize: Math.floor(24 * scale) + 'px',
             color: '#f1c40f'
         }).setOrigin(0.5).setScrollFactor(0);
         
-        this.add.text(width / 2, height / 2 - 50, `Очки: ${window.GameState?.score || 0}`, {
-            fontSize: '20px',
+        this.add.text(width / 2, height / 2 - 50 * scale, `Очки: ${window.GameState?.score || 0}`, {
+            fontSize: Math.floor(20 * scale) + 'px',
             color: '#ffffff'
         }).setOrigin(0.5).setScrollFactor(0);
         
-        this.add.text(width / 2, height / 2 - 20, `Стресс: ${Math.round(window.GameState?.stress || 0)}%`, {
-            fontSize: '20px',
+        this.add.text(width / 2, height / 2 - 20 * scale, `Стресс: ${Math.round(window.GameState?.stress || 0)}%`, {
+            fontSize: Math.floor(20 * scale) + 'px',
             color: '#ffffff'
         }).setOrigin(0.5).setScrollFactor(0);
         
-        this.add.text(width / 2, height / 2 + 10, `Роман: ${Math.round(window.GameState?.romance || 0)}%`, {
-            fontSize: '20px',
+        this.add.text(width / 2, height / 2 + 10 * scale, `Роман: ${Math.round(window.GameState?.romance || 0)}%`, {
+            fontSize: Math.floor(20 * scale) + 'px',
             color: '#ffffff'
         }).setOrigin(0.5).setScrollFactor(0);
         
-        const againBtn = this.add.rectangle(width / 2, height / 2 + 80, 200, 40, 0x33ccff)
+        const againBtn = this.add.rectangle(width / 2, height / 2 + 80 * scale, 200 * scale, 40 * scale, 0x33ccff)
             .setInteractive({ useHandCursor: true })
             .setScrollFactor(0);
         
-        this.add.text(width / 2, height / 2 + 80, '🔄 ЕЩЕ ДЕНЬ', {
-            fontSize: '18px',
+        this.add.text(width / 2, height / 2 + 80 * scale, '🔄 ЕЩЕ ДЕНЬ', {
+            fontSize: Math.floor(18 * scale) + 'px',
             color: '#ffffff'
         }).setOrigin(0.5).setScrollFactor(0);
         

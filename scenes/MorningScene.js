@@ -8,106 +8,131 @@ class MorningScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        
+        // Масштабируем всё под экран
+        const scale = Math.min(width / 800, height / 600);
+        const baseSize = Math.floor(16 * scale);
         
         // 1. ФОН СПАЛЬНИ
         const bg = this.add.graphics();
         bg.fillGradientStyle(0x1a1a3a, 0x1a1a3a, 0x2a2a4a, 0x2a2a4a, 1, 1, 1, 1);
         bg.fillRect(0, 0, width, height);
         
-        // 2. КРОВАТЬ (пиксель-арт)
+        // 2. КРОВАТЬ (адаптивная)
+        const bedWidth = Math.floor(300 * scale);
+        const bedHeight = Math.floor(80 * scale);
+        const mattressWidth = Math.floor(280 * scale);
+        const mattressHeight = Math.floor(40 * scale);
+        
         // Основание кровати
-        this.add.rectangle(width / 2, height - 100, 300, 80, 0x8B4513).setOrigin(0.5);
+        this.add.rectangle(centerX, height - 100 * scale, bedWidth, bedHeight, 0x8B4513).setOrigin(0.5);
         
         // Матрас
-        this.add.rectangle(width / 2, height - 130, 280, 40, 0x5D3A1A).setOrigin(0.5);
+        this.add.rectangle(centerX, height - 130 * scale, mattressWidth, mattressHeight, 0x5D3A1A).setOrigin(0.5);
         
         // Подушка
-        this.add.ellipse(width / 2 - 50, height - 140, 60, 30, 0xfff5e6);
+        this.add.ellipse(centerX - 50 * scale, height - 140 * scale, 
+                        60 * scale, 30 * scale, 0xfff5e6);
         
         // Одеяло
-        this.add.rectangle(width / 2, height - 115, 280, 20, 0x3498db, 0.3).setOrigin(0.5);
+        this.add.rectangle(centerX, height - 115 * scale, mattressWidth, 20 * scale, 0x3498db, 0.3).setOrigin(0.5);
         
         // 3. ТУМБОЧКА
-        this.add.rectangle(width / 2 + 120, height - 120, 60, 50, 0x8B4513).setOrigin(0.5);
+        const nightstandX = centerX + 120 * scale;
+        const nightstandY = height - 120 * scale;
+        this.add.rectangle(nightstandX, nightstandY, 60 * scale, 50 * scale, 0x8B4513).setOrigin(0.5);
         
-        // 4. БУДИЛЬНИК (на тумбочке)
-        const alarmX = width / 2 + 120;
-        const alarmY = height - 140;
+        // 4. БУДИЛЬНИК (адаптивный)
+        const alarmX = nightstandX;
+        const alarmY = nightstandY - 20 * scale;
         
         // Корпус будильника
-        this.add.rectangle(alarmX, alarmY, 40, 50, 0xff3366).setOrigin(0.5);
+        this.add.rectangle(alarmX, alarmY, 40 * scale, 50 * scale, 0xff3366).setOrigin(0.5);
         
         // Циферблат
-        this.add.circle(alarmX, alarmY - 5, 15, 0xffffff);
+        this.add.circle(alarmX, alarmY - 5 * scale, 15 * scale, 0xffffff);
         
         // Стрелки
-        this.add.line(alarmX, alarmY - 5, 0, 0, 0, -10, 0x000000).setOrigin(0, 0.5);
-        this.add.line(alarmX, alarmY - 5, 0, 0, 0, -8, 0x000000).setOrigin(0, 0.5);
+        this.add.line(alarmX, alarmY - 5 * scale, 0, 0, 0, -10 * scale, 0x000000).setOrigin(0, 0.5);
+        this.add.line(alarmX, alarmY - 5 * scale, 0, 0, 0, -8 * scale, 0x000000).setOrigin(0, 0.5);
         
-        // Кнопка будильника сверху
-        const alarmButton = this.add.circle(alarmX, alarmY - 30, 5, 0xff0000);
+        // Кнопка будильника
+        const alarmButton = this.add.circle(alarmX, alarmY - 30 * scale, 5 * scale, 0xff0000);
         
-        // 5. ТЕЛЕФОН
-        this.add.rectangle(width / 2 - 100, height - 140, 30, 50, 0x333333).setOrigin(0.5);
-        this.add.rectangle(width / 2 - 100, height - 150, 20, 30, 0x87CEEB).setOrigin(0.5);
+        // 5. ТЕЛЕФОН (адаптивный)
+        const phoneX = centerX - 100 * scale;
+        const phoneY = nightstandY;
+        this.add.rectangle(phoneX, phoneY, 30 * scale, 50 * scale, 0x333333).setOrigin(0.5);
+        this.add.rectangle(phoneX, phoneY - 10 * scale, 20 * scale, 30 * scale, 0x87CEEB).setOrigin(0.5);
         
         // Время на телефоне
-        const timeText = this.add.text(width / 2 - 100, height - 155, '7:45', {
-            fontSize: '10px',
+        const timeText = this.add.text(phoneX, phoneY - 15 * scale, '7:45', {
+            fontSize: Math.floor(10 * scale) + 'px',
             color: '#ffffff'
         }).setOrigin(0.5);
         
-        // 6. ОКНО (вид на офис)
-        this.add.rectangle(100, 150, 80, 100, 0x87CEEB, 0.3).setOrigin(0.5);
-        this.add.rectangle(100, 150, 76, 96, 0x000000, 0.5).setOrigin(0.5);
+        // 6. ОКНО (адаптивное)
+        const windowX = 100 * scale;
+        const windowY = 150 * scale;
+        this.add.rectangle(windowX, windowY, 80 * scale, 100 * scale, 0x87CEEB, 0.3).setOrigin(0.5);
+        this.add.rectangle(windowX, windowY, 76 * scale, 96 * scale, 0x000000, 0.5).setOrigin(0.5);
         
         // 7. ТЕКСТ "УТРО"
-        this.add.text(width / 2, 50, '🌅 УТРО', {
-            fontSize: '32px',
+        this.add.text(centerX, 50 * scale, '🌅 УТРО', {
+            fontSize: Math.floor(32 * scale) + 'px',
             fontFamily: 'Arial Black',
             color: '#ffffff',
             stroke: '#ff3366',
-            strokeThickness: 4
+            strokeThickness: Math.floor(4 * scale)
         }).setOrigin(0.5);
         
         // 8. СЧЕТЧИК БУДИЛЬНИКА
         let snoozeCount = 0;
         const maxSnooze = 3;
         
-        const snoozeText = this.add.text(width / 2, 100, `Переносов: ${snoozeCount}/${maxSnooze}`, {
-            fontSize: '16px',
+        const snoozeText = this.add.text(centerX, 100 * scale, `Переносов: ${snoozeCount}/${maxSnooze}`, {
+            fontSize: Math.floor(16 * scale) + 'px',
             color: '#ffff00'
         }).setOrigin(0.5);
         
-        // 9. КНОПКИ
-        // Кнопка "Еще 5 минут"
-        const snoozeBtn = this.add.rectangle(width / 2 - 150, height - 50, 200, 50, 0xff3366)
-            .setInteractive({ useHandCursor: true })
-            .setStrokeStyle(2, 0xffffff);
+        // 9. КНОПКИ (адаптивные)
+        const buttonWidth = Math.floor(200 * scale);
+        const buttonHeight = Math.floor(50 * scale);
+        const buttonY = height - 50 * scale;
         
-        this.add.text(width / 2 - 150, height - 50, '😴 ЕЩЕ 5 МИНУТ', {
-            fontSize: '16px',
+        // Кнопка "Еще 5 минут"
+        const snoozeBtn = this.add.rectangle(centerX - buttonWidth * 0.75, buttonY, 
+                                            buttonWidth, buttonHeight, 0xff3366)
+            .setInteractive({ useHandCursor: true })
+            .setStrokeStyle(Math.floor(2 * scale), 0xffffff);
+        
+        this.add.text(centerX - buttonWidth * 0.75, buttonY, '😴 ЕЩЕ 5 МИНУТ', {
+            fontSize: Math.floor(16 * scale) + 'px',
             color: '#ffffff'
         }).setOrigin(0.5);
         
         // Кнопка "Встать"
-        const wakeBtn = this.add.rectangle(width / 2 + 150, height - 50, 150, 50, 0x33ccff)
+        const wakeBtn = this.add.rectangle(centerX + buttonWidth * 0.75, buttonY, 
+                                          buttonWidth * 0.75, buttonHeight, 0x33ccff)
             .setInteractive({ useHandCursor: true })
-            .setStrokeStyle(2, 0xffffff);
+            .setStrokeStyle(Math.floor(2 * scale), 0xffffff);
         
-        this.add.text(width / 2 + 150, height - 50, '⏰ ВСТАТЬ', {
-            fontSize: '18px',
+        this.add.text(centerX + buttonWidth * 0.75, buttonY, '⏰ ВСТАТЬ', {
+            fontSize: Math.floor(18 * scale) + 'px',
             color: '#ffffff'
         }).setOrigin(0.5);
         
-        // Кнопка "Больничный" (появляется после переносов)
-        const sickBtn = this.add.rectangle(width / 2, height - 120, 200, 40, 0x2ecc71)
+        // Кнопка "Больничный"
+        const sickBtn = this.add.rectangle(centerX, buttonY - 70 * scale, 
+                                          buttonWidth, buttonHeight * 0.8, 0x2ecc71)
             .setInteractive({ useHandCursor: true })
-            .setStrokeStyle(2, 0xffffff)
+            .setStrokeStyle(Math.floor(2 * scale), 0xffffff)
             .setVisible(false);
         
-        const sickText = this.add.text(width / 2, height - 120, '🤒 ВЗЯТЬ БОЛЬНИЧНЫЙ', {
-            fontSize: '14px',
+        const sickText = this.add.text(centerX, buttonY - 70 * scale, '🤒 ВЗЯТЬ БОЛЬНИЧНЫЙ', {
+            fontSize: Math.floor(14 * scale) + 'px',
             color: '#ffffff'
         }).setOrigin(0.5).setVisible(false);
         
@@ -121,12 +146,13 @@ class MorningScene extends Phaser.Scene {
             repeat: -1
         });
         
-        // Звуковой эффект будильника (визуальный)
-        const alarmWave = this.add.circle(alarmX, alarmY - 30, 10, 0xff0000, 0).setStrokeStyle(2, 0xff0000);
+        // Звуковой эффект будильника
+        const alarmWave = this.add.circle(alarmX, alarmY - 30 * scale, 10 * scale, 0xff0000, 0)
+            .setStrokeStyle(Math.floor(2 * scale), 0xff0000);
         
         this.tweens.add({
             targets: alarmWave,
-            radius: 30,
+            radius: 30 * scale,
             alpha: 0,
             duration: 1000,
             repeat: -1,
@@ -141,7 +167,6 @@ class MorningScene extends Phaser.Scene {
             snoozeText.setText(`Переносов: ${snoozeCount}/${maxSnooze}`);
             
             // Меняем время на телефоне
-            const time = 7 + Math.floor(45 + snoozeCount * 5) / 60;
             const minutes = 45 + snoozeCount * 5;
             timeText.setText(`${Math.floor(minutes / 60) + 7}:${minutes % 60}`);
             
@@ -194,23 +219,25 @@ class MorningScene extends Phaser.Scene {
         
         // 12. ЗАПУСКАЕМ СИСТЕМУ ВРЕМЕНИ
         if (window.TimeSystem) {
-            window.TimeSystem.init(9 * 60); // 9:00 утра
+            window.TimeSystem.init(9 * 60);
         }
     }
     
     showMessage(text) {
         const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        const scale = Math.min(width / 800, height / 600);
         
-        const msg = this.add.text(width / 2, 200, text, {
-            fontSize: '18px',
+        const msg = this.add.text(width / 2, height * 0.3, text, {
+            fontSize: Math.floor(18 * scale) + 'px',
             color: '#ffffff',
             backgroundColor: '#000000',
-            padding: { x: 10, y: 5 }
+            padding: { x: 10 * scale, y: 5 * scale }
         }).setOrigin(0.5).setDepth(1000);
         
         this.tweens.add({
             targets: msg,
-            y: 150,
+            y: height * 0.25,
             alpha: 0,
             duration: 2000,
             onComplete: () => msg.destroy()

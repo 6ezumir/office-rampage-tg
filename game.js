@@ -2,33 +2,31 @@
 const screenWidth = window.innerWidth;
 const screenHeight = window.innerHeight;
 
-// Конфигурация игры
+// Для Honor X9a (2400x1080) делаем особую настройку
+const isHonor = screenWidth === 1080 && screenHeight === 2400;
+
 const config = {
     type: Phaser.AUTO,
     width: screenWidth,
     height: screenHeight,
     parent: 'game-container',
-    backgroundColor: '#0a0a1a',
+    backgroundColor: '#2c3e50',
     scale: {
         mode: Phaser.Scale.NONE,
         autoCenter: Phaser.Scale.NO_CENTER
     },
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: 0,
-            debug: false
-        }
-    },
-    scene: [
-        MenuScene,     // Первая сцена - меню
-        MorningScene,  // Утро с будильником
-        OfficeScene,   // Основной офис
-        KitchenScene,  // Кухня
-        SmokingScene,  // Курилка
-        ToiletScene    // Туалет
-    ]
+    scene: [MenuScene, MorningScene, OfficeScene, KitchenScene, SmokingScene, ToiletScene]
 };
 
-// Запуск игры
-const game = new Phaser.Game(config);
+// Функция для корректировки позиций под экран
+function adaptToScreen(x, y) {
+    return {
+        x: (x / 800) * screenWidth,
+        y: (y / 600) * screenHeight
+    };
+}
+
+window.addEventListener('load', () => {
+    console.log('Запуск игры на', screenWidth, 'x', screenHeight);
+    new Phaser.Game(config);
+});

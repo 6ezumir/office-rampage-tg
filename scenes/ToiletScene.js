@@ -25,72 +25,81 @@ class ToiletScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+        const centerX = width / 2;
         
-        // 1. СОЗДАЕМ КАРТУ
+        // Масштабируем под экран
+        const scale = Math.min(width / 800, height / 600);
+        const baseTileSize = 32 * scale;
+        this.tileSize = baseTileSize;
+        
+        // 1. СОЗДАЕМ КАРТУ С МАСШТАБИРОВАНИЕМ
         for(let row = 0; row < this.map.length; row++) {
             for(let col = 0; col < this.map[row].length; col++) {
-                const x = col * this.tileSize;
-                const y = row * this.tileSize;
+                const x = col * baseTileSize;
+                const y = row * baseTileSize;
                 const tile = this.map[row][col];
                 
                 if (tile === 2) {
-                    // Пол (плитка)
-                    this.add.image(x, y, 'floor').setOrigin(0);
+                    // Пол
+                    this.add.image(x, y, 'floor').setOrigin(0).setScale(scale);
                 } else if (tile === 1) {
                     // Стены
-                    this.add.image(x, y, 'wall').setOrigin(0);
+                    this.add.image(x, y, 'wall').setOrigin(0).setScale(scale);
                 }
             }
         }
         
-        // 2. ДОБАВЛЯЕМ ДЕКОР
+        // 2. ДОБАВЛЯЕМ ДЕКОР С МАСШТАБИРОВАНИЕМ
         for(let row = 0; row < this.map.length; row++) {
             for(let col = 0; col < this.map[row].length; col++) {
-                const x = col * this.tileSize + 16;
-                const y = row * this.tileSize + 16;
+                const x = col * baseTileSize + baseTileSize/2;
+                const y = row * baseTileSize + baseTileSize/2;
                 const tile = this.map[row][col];
                 
                 switch(tile) {
                     case 3: // Кабинка (место для пряток)
-                        const cabin = this.add.rectangle(x, y, 28, 28, 0x8B4513, 0.5);
+                        const cabin = this.add.rectangle(x, y, 28 * scale, 28 * scale, 0x8B4513, 0.5);
                         cabin.setData('hiding', true);
                         cabin.setInteractive({ useHandCursor: true });
                         this.hidingSpots.push(cabin);
                         
                         // Дверца кабинки
-                        this.add.rectangle(x - 8, y, 4, 20, 0xCD853F);
+                        this.add.rectangle(x - 8 * scale, y, 4 * scale, 20 * scale, 0xCD853F);
                         break;
                         
                     case 4: // Раковина
-                        this.add.ellipse(x, y, 20, 10, 0xffffff);
-                        this.add.circle(x - 5, y - 5, 3, 0x3498db);
-                        this.add.circle(x + 5, y - 5, 3, 0x3498db);
+                        this.add.ellipse(x, y, 20 * scale, 10 * scale, 0xffffff);
+                        this.add.circle(x - 5 * scale, y - 5 * scale, 3 * scale, 0x3498db);
+                        this.add.circle(x + 5 * scale, y - 5 * scale, 3 * scale, 0x3498db);
                         break;
                         
                     case 5: // Зеркало
-                        this.add.rectangle(x, y, 20, 24, 0x87CEEB, 0.3);
-                        this.add.rectangle(x, y, 18, 22, 0x000000, 0.5);
+                        this.add.rectangle(x, y, 20 * scale, 24 * scale, 0x87CEEB, 0.3);
+                        this.add.rectangle(x, y, 18 * scale, 22 * scale, 0x000000, 0.5);
                         break;
                 }
             }
         }
         
-        // 3. СОЗДАЕМ ИГРОКА
-        this.player = new Player(this, 200, 200);
+        // 3. СОЗДАЕМ ИГРОКА (центрируем на карте)
+        const playerStartX = 5 * baseTileSize;
+        const playerStartY = 3 * baseTileSize;
+        this.player = new Player(this, playerStartX, playerStartY);
+        this.player.sprite.setScale(scale);
         
         // 4. НАСТРАИВАЕМ КАМЕРУ
-        this.cameras.main.setBounds(0, 0, 12 * 32, 7 * 32);
+        this.cameras.main.setBounds(0, 0, this.map[0].length * baseTileSize, this.map.length * baseTileSize);
         this.cameras.main.startFollow(this.player.sprite);
-        this.cameras.main.setZoom(3);
+        this.cameras.main.setZoom(2);
         
         // 5. УПРАВЛЕНИЕ
         this.cursors = this.input.keyboard.createCursorKeys();
         
         // 6. ИНТЕРФЕЙС
-        this.createUI();
+        this.createUI(scale);
         
         // 7. ДВЕРИ
-        this.createDoors();
+        this.createDoors(scale);
         
         // 8. ОБРАБОТЧИК ТАЧЕЙ
         this.input.on('pointerdown', (pointer) => {
@@ -102,7 +111,7 @@ class ToiletScene extends Phaser.Scene {
         // 9. ОБРАБОТЧИК ПРЯТОК
         this.hidingSpots.forEach(spot => {
             spot.on('pointerdown', () => {
-                this.toggleHide(spot);
+                this.toggleHide(spot, scale);
             });
         });
         
@@ -112,57 +121,71 @@ class ToiletScene extends Phaser.Scene {
             callback: () => {
                 if (this.isHiding && window.GameState) {
                     window.GameState.stress = Math.max(0, (window.GameState.stress || 0) - 5);
-                    this.showMessage('😮‍💨 Отдых... Стресс -5');
+                    this.showMessage('😮‍💨 Отдых... Стресс -5', scale);
                 }
             },
             loop: true
         });
         
         // 11. НАЗВАНИЕ ЛОКАЦИИ
-        this.add.text(width / 2, 20, '🚽 ТУАЛЕТ', {
-            fontSize: '24px',
+        this.add.text(centerX, 20 * scale, '🚽 ТУАЛЕТ', {
+            fontSize: Math.floor(24 * scale) + 'px',
             color: '#ffffff',
             stroke: '#000000',
-            strokeThickness: 4
+            strokeThickness: Math.floor(4 * scale)
         }).setOrigin(0.5).setScrollFactor(0);
         
-        // 12. ЗВУКИ (визуальные)
-        this.createSounds();
+        // 12. ЗВУКИ (визуальные) С МАСШТАБИРОВАНИЕМ
+        this.createSounds(scale);
     }
 
-    createUI() {
+    createUI(scale) {
         const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        const fontSize = Math.floor(20 * scale);
+        const smallFont = Math.floor(14 * scale);
         
         // Статусы
-        this.scoreText = this.add.text(10, 10, `🏆 ${window.GameState?.score || 0}`, {
-            fontSize: '20px',
-            color: '#f1c40f'
+        this.scoreText = this.add.text(10 * scale, 10 * scale, `🏆 ${window.GameState?.score || 0}`, {
+            fontSize: fontSize + 'px',
+            color: '#f1c40f',
+            stroke: '#000000',
+            strokeThickness: Math.floor(2 * scale)
         }).setScrollFactor(0);
         
-        this.stressText = this.add.text(10, 35, `😫 ${Math.round(window.GameState?.stress || 0)}%`, {
-            fontSize: '20px',
-            color: '#2ecc71'
+        this.stressText = this.add.text(10 * scale, 35 * scale, `😫 ${Math.round(window.GameState?.stress || 0)}%`, {
+            fontSize: fontSize + 'px',
+            color: '#2ecc71',
+            stroke: '#000000',
+            strokeThickness: Math.floor(2 * scale)
         }).setScrollFactor(0);
         
         // Время
-        this.timeText = this.add.text(width - 100, 10, window.TimeSystem?.getTimeString() || '09:00', {
-            fontSize: '24px',
-            color: '#ffffff'
+        this.timeText = this.add.text(width - 100 * scale, 10 * scale, 
+            window.TimeSystem?.getTimeString() || '09:00', {
+            fontSize: Math.floor(24 * scale) + 'px',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: Math.floor(2 * scale)
         }).setScrollFactor(0);
         
-        // Индикатор пряток
-        this.hideText = this.add.text(width / 2, 60, '', {
-            fontSize: '16px',
-            color: '#33ccff'
+        // Индикатор пряток (адаптивный)
+        this.hideText = this.add.text(centerX, 60 * scale, '', {
+            fontSize: smallFont + 'px',
+            color: '#33ccff',
+            stroke: '#000000',
+            strokeThickness: Math.floor(1 * scale)
         }).setOrigin(0.5).setScrollFactor(0);
         
-        // Кнопка назад
-        const backBtn = this.add.circle(50, 50, 20, 0x33ccff)
+        // Кнопка назад (адаптивная)
+        const btnSize = Math.floor(40 * scale);
+        const backBtn = this.add.circle(btnSize, height - btnSize, btnSize/2, 0x33ccff)
             .setInteractive({ useHandCursor: true })
             .setScrollFactor(0);
         
-        this.add.text(50, 50, '🏢', {
-            fontSize: '20px'
+        this.add.text(btnSize, height - btnSize, '🏢', {
+            fontSize: btnSize/2 + 'px'
         }).setOrigin(0.5).setScrollFactor(0);
         
         backBtn.on('pointerdown', () => {
@@ -170,13 +193,19 @@ class ToiletScene extends Phaser.Scene {
         });
     }
 
-    createDoors() {
-        const door = this.add.rectangle(10 * 32, 5 * 32, 40, 40, 0xffaa00, 0.5)
+    createDoors(scale) {
+        const doorX = (this.map[0].length - 2) * this.tileSize;
+        const doorY = (this.map.length - 2) * this.tileSize;
+        
+        const door = this.add.rectangle(doorX + this.tileSize/2, doorY + this.tileSize/2, 
+                                       40 * scale, 40 * scale, 0xffaa00, 0.5)
             .setInteractive({ useHandCursor: true });
         
-        this.add.text(10 * 32, 5 * 32 - 20, '🚪 В ОФИС', {
-            fontSize: '12px',
-            color: '#ffffff'
+        this.add.text(doorX + this.tileSize/2, doorY - 20 * scale, '🚪 В ОФИС', {
+            fontSize: Math.floor(12 * scale) + 'px',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: Math.floor(1 * scale)
         }).setOrigin(0.5);
         
         door.on('pointerdown', () => {
@@ -184,37 +213,37 @@ class ToiletScene extends Phaser.Scene {
         });
     }
 
-    createSounds() {
-        // Звук капающей воды
-        const drop1 = this.add.circle(250, 150, 2, 0x3498db, 0.5);
-        const drop2 = this.add.circle(300, 200, 2, 0x3498db, 0.5);
+    createSounds(scale) {
+        // Звук капающей воды (адаптивный)
+        const drop1 = this.add.circle(6 * this.tileSize, 3 * this.tileSize, 2 * scale, 0x3498db, 0.5);
+        const drop2 = this.add.circle(8 * this.tileSize, 4 * this.tileSize, 2 * scale, 0x3498db, 0.5);
         
         this.tweens.add({
             targets: drop1,
-            y: 200,
+            y: drop1.y + 50 * scale,
             alpha: 0,
             duration: 2000,
             repeat: -1,
             onRepeat: () => {
-                drop1.y = 150;
+                drop1.y = 3 * this.tileSize;
                 drop1.alpha = 0.5;
             }
         });
         
         this.tweens.add({
             targets: drop2,
-            y: 250,
+            y: drop2.y + 50 * scale,
             alpha: 0,
             duration: 3000,
             repeat: -1,
             onRepeat: () => {
-                drop2.y = 200;
+                drop2.y = 4 * this.tileSize;
                 drop2.alpha = 0.5;
             }
         });
     }
 
-    toggleHide(spot) {
+    toggleHide(spot, scale) {
         if (!this.isHiding) {
             // Прячемся
             this.isHiding = true;
@@ -222,7 +251,7 @@ class ToiletScene extends Phaser.Scene {
             this.hideText.setText('🕵️ В ПРЯТКАХ (нажми еще раз, чтобы выйти)');
             
             // Добавляем эффект "тишины"
-            this.showMessage('🤫 Тсс... Начальник не найдет');
+            this.showMessage('🤫 Тсс... Начальник не найдет', scale);
             
             if (window.GameState) {
                 window.GameState.stress = Math.max(0, (window.GameState.stress || 0) - 10);
@@ -233,23 +262,24 @@ class ToiletScene extends Phaser.Scene {
             this.player.sprite.alpha = 1;
             this.hideText.setText('');
             
-            this.showMessage('🚶 Пора возвращаться');
+            this.showMessage('🚶 Пора возвращаться', scale);
         }
     }
 
-    showMessage(text) {
+    showMessage(text, scale = 1) {
         const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
         
-        const msg = this.add.text(width / 2, 100, text, {
-            fontSize: '14px',
+        const msg = this.add.text(width / 2, height * 0.2, text, {
+            fontSize: Math.floor(14 * scale) + 'px',
             color: '#ffffff',
             backgroundColor: '#000000',
-            padding: { x: 8, y: 4 }
+            padding: { x: 8 * scale, y: 4 * scale }
         }).setOrigin(0.5).setScrollFactor(0);
         
         this.tweens.add({
             targets: msg,
-            y: 70,
+            y: height * 0.15,
             alpha: 0,
             duration: 2000,
             onComplete: () => msg.destroy()
@@ -280,16 +310,18 @@ class ToiletScene extends Phaser.Scene {
     }
 
     checkBossSearch() {
+        const scale = Math.min(this.cameras.main.width / 800, this.cameras.main.height / 600);
+        
         // Случайный шанс, что начальник ищет в туалете
         if (Math.random() < 0.0005 && !this.isHiding) {
-            this.showMessage('👔 Начальник заглянул!');
+            this.showMessage('👔 Начальник заглянул!', scale);
             
             if (window.GameState) {
                 window.GameState.stress = Math.min(100, (window.GameState.stress || 0) + 15);
                 window.GameState.score = Math.max(0, (window.GameState.score || 0) - 20);
             }
         } else if (Math.random() < 0.0005 && this.isHiding) {
-            this.showMessage('😎 Пронесло... Начальник не заметил');
+            this.showMessage('😎 Пронесло... Начальник не заметил', scale);
             
             if (window.GameState) {
                 window.GameState.stress = Math.max(0, (window.GameState.stress || 0) - 5);
@@ -298,6 +330,8 @@ class ToiletScene extends Phaser.Scene {
     }
 
     updateUI() {
+        const scale = Math.min(this.cameras.main.width / 800, this.cameras.main.height / 600);
+        
         if (window.GameState) {
             this.scoreText.setText(`🏆 ${window.GameState.score || 0}`);
             this.stressText.setText(`😫 ${Math.round(window.GameState.stress || 0)}%`);

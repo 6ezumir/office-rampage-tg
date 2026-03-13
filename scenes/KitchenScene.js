@@ -28,6 +28,11 @@ class KitchenScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+        const centerX = width / 2;
+        
+        // Масштабируем размер тайлов под экран
+        const scale = Math.min(width / 640, height / 480);
+        this.tileSize = 32 * scale;
         
         // 1. СОЗДАЕМ КАРТУ
         for(let row = 0; row < this.map.length; row++) {
@@ -38,51 +43,59 @@ class KitchenScene extends Phaser.Scene {
                 
                 // Пол (плитка)
                 if (tile === 2) {
-                    this.add.image(x, y, 'floor').setOrigin(0);
+                    this.add.image(x, y, 'floor').setOrigin(0).setScale(scale);
                 } else {
                     // Стены
-                    this.add.image(x, y, 'wall').setOrigin(0);
+                    this.add.image(x, y, 'wall').setOrigin(0).setScale(scale);
                 }
             }
         }
         
         // 2. СОЗДАЕМ ИГРОКА (центрируем)
+        const playerStartX = 10 * this.tileSize;
+        const playerStartY = 5 * this.tileSize;
+        
         if (!this.player) {
-            this.player = new Player(this, 300, 300);
+            this.player = new Player(this, playerStartX, playerStartY);
         } else {
-            this.player.sprite.setPosition(300, 300);
+            this.player.sprite.setPosition(playerStartX, playerStartY);
         }
+        
+        // Масштабируем игрока
+        this.player.sprite.setScale(scale);
         
         // 3. СОЗДАЕМ ПРЕДМЕТЫ
         for(let row = 0; row < this.map.length; row++) {
             for(let col = 0; col < this.map[row].length; col++) {
-                const x = col * this.tileSize + 16;
-                const y = row * this.tileSize + 16;
+                const x = col * this.tileSize + this.tileSize/2;
+                const y = row * this.tileSize + this.tileSize/2;
                 const tile = this.map[row][col];
                 
                 switch(tile) {
                     case 3: // Стол
-                        this.add.image(x, y, 'desk');
+                        const desk = this.add.image(x, y, 'desk').setScale(scale);
                         break;
                     case 4: // Кофемашина
                         const coffee = new CoffeeMachine(this, x, y);
+                        coffee.sprite.setScale(scale);
                         this.items.push(coffee);
                         break;
                     case 5: // Печеньки
                         const cookies = new Cookies(this, x, y);
+                        cookies.sprite.setScale(scale);
                         this.items.push(cookies);
                         break;
-                    case 6: // Микроволновка (используем ту же текстуру что и принтер, но с другим смыслом)
-                        this.add.image(x, y, 'printer');
+                    case 6: // Микроволновка
+                        const microwave = this.add.image(x, y, 'printer').setScale(scale);
                         break;
                 }
             }
         }
         
         // 4. НАСТРАИВАЕМ КАМЕРУ
-        this.cameras.main.setBounds(0, 0, 20 * 32, 11 * 32);
+        this.cameras.main.setBounds(0, 0, this.map[0].length * this.tileSize, this.map.length * this.tileSize);
         this.cameras.main.startFollow(this.player.sprite);
-        this.cameras.main.setZoom(2);
+        this.cameras.main.setZoom(1);
         
         // 5. УПРАВЛЕНИЕ
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -106,8 +119,8 @@ class KitchenScene extends Phaser.Scene {
         });
         
         // 10. НАЗВАНИЕ ЛОКАЦИИ
-        this.add.text(width / 2, 20, '☕ КУХНЯ', {
-            fontSize: '24px',
+        this.add.text(centerX, 30, '☕ КУХНЯ', {
+            fontSize: Math.floor(24 * scale) + 'px',
             color: '#ffffff',
             stroke: '#000000',
             strokeThickness: 4
@@ -116,36 +129,41 @@ class KitchenScene extends Phaser.Scene {
 
     createUI() {
         const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
         
-        // Верхняя панель
-        this.scoreText = this.add.text(10, 10, `🏆 ${window.GameState?.score || 0}`, {
-            fontSize: '20px',
+        // Верхняя панель (адаптивные отступы)
+        const padding = Math.floor(width * 0.02);
+        const fontSize = Math.floor(width * 0.05);
+        
+        this.scoreText = this.add.text(padding, padding, `🏆 ${window.GameState?.score || 0}`, {
+            fontSize: fontSize + 'px',
             color: '#f1c40f'
         }).setScrollFactor(0);
         
-        this.stressText = this.add.text(10, 35, `😫 ${Math.round(window.GameState?.stress || 0)}%`, {
-            fontSize: '20px',
+        this.stressText = this.add.text(padding, padding + fontSize + 5, `😫 ${Math.round(window.GameState?.stress || 0)}%`, {
+            fontSize: fontSize + 'px',
             color: '#2ecc71'
         }).setScrollFactor(0);
         
-        this.energyText = this.add.text(150, 10, `⚡ ${Math.round(window.GameState?.energy || 100)}%`, {
-            fontSize: '20px',
+        this.energyText = this.add.text(padding + width * 0.15, padding, `⚡ ${Math.round(window.GameState?.energy || 100)}%`, {
+            fontSize: fontSize + 'px',
             color: '#f39c12'
         }).setScrollFactor(0);
         
-        // Время
-        this.timeText = this.add.text(width - 100, 10, window.TimeSystem?.getTimeString() || '09:00', {
-            fontSize: '24px',
+        // Время (справа)
+        this.timeText = this.add.text(width - padding * 5, padding, window.TimeSystem?.getTimeString() || '09:00', {
+            fontSize: fontSize + 'px',
             color: '#ffffff'
         }).setScrollFactor(0);
         
-        // Кнопка "Назад в офис"
-        const backBtn = this.add.circle(50, 50, 20, 0x33ccff)
+        // Кнопка "Назад в офис" (адаптивный размер)
+        const btnSize = Math.floor(width * 0.06);
+        const backBtn = this.add.circle(btnSize, height - btnSize, btnSize/2, 0x33ccff)
             .setInteractive({ useHandCursor: true })
             .setScrollFactor(0);
         
-        this.add.text(50, 50, '🏢', {
-            fontSize: '20px'
+        this.add.text(btnSize, height - btnSize, '🏢', {
+            fontSize: btnSize/2 + 'px'
         }).setOrigin(0.5).setScrollFactor(0);
         
         backBtn.on('pointerdown', () => {
@@ -154,11 +172,16 @@ class KitchenScene extends Phaser.Scene {
     }
 
     createDoors() {
-        const door = this.add.rectangle(10 * 32, 10 * 32, 40, 40, 0xffaa00, 0.5)
+        // Дверь в правом нижнем углу
+        const doorX = (this.map[0].length - 2) * this.tileSize;
+        const doorY = (this.map.length - 2) * this.tileSize;
+        
+        const door = this.add.rectangle(doorX + this.tileSize/2, doorY + this.tileSize/2, 
+                                       this.tileSize * 1.5, this.tileSize * 1.5, 0xffaa00, 0.5)
             .setInteractive({ useHandCursor: true });
         
-        this.add.text(10 * 32, 10 * 32 - 20, '🚪 В ОФИС', {
-            fontSize: '12px',
+        this.add.text(doorX + this.tileSize/2, doorY - 20, '🚪 В ОФИС', {
+            fontSize: Math.floor(14 * (this.tileSize/32)) + 'px',
             color: '#ffffff'
         }).setOrigin(0.5);
         
@@ -192,7 +215,7 @@ class KitchenScene extends Phaser.Scene {
         } else if (item instanceof Cookies) {
             result = item.take();
         } else if (item instanceof Printer) {
-            result = item.hit(); // На кухне принтеров нет, но на всякий случай
+            result = item.hit();
         }
         
         if (result) {
@@ -214,17 +237,18 @@ class KitchenScene extends Phaser.Scene {
 
     showMessage(text) {
         const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
         
-        const msg = this.add.text(width / 2, 100, text, {
-            fontSize: '16px',
+        const msg = this.add.text(width / 2, height * 0.2, text, {
+            fontSize: Math.floor(width * 0.04) + 'px',
             color: '#ffffff',
             backgroundColor: '#000000',
-            padding: { x: 10, y: 5 }
+            padding: { x: 15, y: 8 }
         }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
         
         this.tweens.add({
             targets: msg,
-            y: 50,
+            y: height * 0.15,
             alpha: 0,
             duration: 2000,
             onComplete: () => msg.destroy()
