@@ -1,46 +1,34 @@
-// Размеры экрана телефона
+// Размеры экрана
 const screenWidth = window.innerWidth;
 const screenHeight = window.innerHeight;
 
+// Конфигурация игры
 const config = {
     type: Phaser.AUTO,
     width: screenWidth,
     height: screenHeight,
     parent: 'game-container',
-    backgroundColor: '#2c3e50',  // Это и есть фон на весь экран!
+    backgroundColor: '#0a0a1a',
     scale: {
-        mode: Phaser.Scale.NONE,  // Не масштабируем, берём реальные пиксели
+        mode: Phaser.Scale.NONE,
         autoCenter: Phaser.Scale.NO_CENTER
     },
-    scene: {
-        preload: preload,
-        create: create
-    }
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: 0,
+            debug: false
+        }
+    },
+    scene: [
+        MenuScene,     // Первая сцена - меню
+        MorningScene,  // Утро с будильником
+        OfficeScene,   // Основной офис
+        KitchenScene,  // Кухня
+        SmokingScene,  // Курилка
+        ToiletScene    // Туалет
+    ]
 };
 
-function preload() {
-    // Создаём текстуру
-    const graphics = this.add.graphics();
-    graphics.fillStyle(0x3498db, 1);
-    graphics.fillCircle(100, 100, 50);
-    graphics.generateTexture('player', 200, 200);
-    graphics.destroy();
-}
-
-function create() {
-    // Ставим игрока по центру экрана
-    this.add.image(screenWidth / 2, screenHeight / 2, 'player');
-    
-    // Текст
-    this.add.text(screenWidth / 2 - 150, screenHeight / 2 - 100, 'Офисный кошмар', {
-        fontSize: '32px',
-        color: '#ffffff'
-    });
-    
-    this.add.text(screenWidth / 2 - 120, screenHeight / 2 - 50, 'Игра запущена!', {
-        fontSize: '24px',
-        color: '#ffff00'
-    });
-}
-
-new Phaser.Game(config);
+// Запуск игры
+const game = new Phaser.Game(config);

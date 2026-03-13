@@ -2,13 +2,41 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Офисный кошмар</title>
+    
+    <!-- Telegram SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Phaser -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    
+    <!-- Стили -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container"></div>
+
+    <!-- Подключаем все файлы по порядку -->
+    <script src="utils/saveSystem.js"></script>
+    <script src="utils/timeSystem.js"></script>
+    
+    <script src="characters/Player.js"></script>
+    <script src="characters/Boss.js"></script>
+    <script src="characters/Colleague.js"></script>
+    
+    <script src="items/CoffeeMachine.js"></script>
+    <script src="items/Printer.js"></script>
+    <script src="items/Cookies.js"></script>
+    
+    <script src="scenes/MenuScene.js"></script>
+    <script src="scenes/MorningScene.js"></script>
+    <script src="scenes/OfficeScene.js"></script>
+    <script src="scenes/KitchenScene.js"></script>
+    <script src="scenes/SmokingScene.js"></script>
+    <script src="scenes/ToiletScene.js"></script>
+    
+    <!-- Главный файл игры -->
     <script src="game.js"></script>
 </body>
 </html>
