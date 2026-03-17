@@ -497,3 +497,116 @@ canvas {
     font-size: 17px;
   }
 }
+
+/* ===== SLEEP SCENE ===== */
+
+.sleep-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #0a0f1d 0%, #02040a 100%);
+}
+
+.sleep-screen.active {
+  display: flex;
+}
+
+.sleep-scene {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* кровать */
+.bed {
+  position: relative;
+  width: 260px;
+  height: 140px;
+  background: #141c30;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+/* одеяло */
+.blanket {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 80%;
+  background: linear-gradient(180deg, #2a3a5f, #1c2844);
+  border-radius: 20px;
+}
+
+/* силуэт человека */
+.person {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  width: 160px;
+  height: 60px;
+  background: #0c1224;
+  border-radius: 50px;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+/* дыхание */
+@keyframes breathe {
+  0%,100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.08); }
+}
+
+/* будильник */
+.alarm {
+  position: absolute;
+  right: 30px;
+  top: 120px;
+  width: 40px;
+  height: 40px;
+  background: #e84c4c;
+  border-radius: 8px;
+  animation: shake 0.4s infinite;
+}
+
+.alarm-light {
+  position: absolute;
+  inset: -10px;
+  border-radius: 999px;
+  background: rgba(255, 80, 80, 0.3);
+  animation: pulse 1s infinite;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-3px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.8); opacity: 0.4; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.4; }
+}
+
+/* кнопка */
+.wake-btn {
+  position: absolute;
+  bottom: 60px;
+  width: 80%;
+  max-width: 280px;
+  min-height: 56px;
+  border-radius: 18px;
+  border: none;
+  background: linear-gradient(180deg, #5b8cff, #3c6be0);
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+}
