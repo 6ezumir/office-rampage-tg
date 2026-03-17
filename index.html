@@ -12,33 +12,50 @@
 <body>
 
   <!-- МЕНЮ -->
-  <div id="menuScreen" class="menu-screen active">
+<div id="menuScreen" class="menu-screen active">
+  <div class="menu-bg">
+    <div class="menu-orb orb-1"></div>
+    <div class="menu-orb orb-2"></div>
+    <div class="menu-orb orb-3"></div>
+    <div class="menu-grid"></div>
+    <div class="menu-noise"></div>
+  </div>
+
+  <div class="menu-shell">
+    <div class="menu-topline">
+      <span class="menu-pill">MVP</span>
+      <span class="menu-status">Понедельник · уровень тревоги: высокий</span>
+    </div>
+
     <div class="menu-card">
-      <div class="menu-badge">MVP</div>
-      <h1 class="menu-title">ВЫЖИВИ ДО ПЯТНИЦЫ</h1>
+      <div class="menu-kicker">corporate survival</div>
+
+      <h1 class="menu-title glitch" data-text="ВЫЖИВИ ДО ПЯТНИЦЫ">
+        ВЫЖИВИ ДО ПЯТНИЦЫ
+      </h1>
+
       <div class="menu-subtitle">Офисный разгром</div>
 
       <p class="menu-description">
-        Пять дней. Один офис. Ноль внутреннего ресурса.
-        Постарайся дожить до конца недели.
+        Пять дней. Один офис. Десятки странных разговоров, сломанных предметов
+        и решений, о которых пожалеют все. Постарайся дожить до конца недели.
       </p>
 
+      <div class="menu-quote">
+        «В 09:00 ты ещё сотрудник. В 18:00 — уже легенда отдела.»
+      </div>
+
       <div class="menu-buttons">
-        <button class="menu-btn menu-btn-primary" id="startGameBtn">Начать</button>
-        <button class="menu-btn" id="howToPlayBtn">Как играть</button>
+        <button class="menu-btn menu-btn-primary" id="startGameBtn">▶ Начать смену</button>
+        <button class="menu-btn" id="howToPlayBtn">? Как выжить</button>
+      </div>
+
+      <div class="menu-hint">
+        Мини-история про стресс, хаос, репутацию и офисные катастрофы.
       </div>
     </div>
   </div>
-
-  <!-- ИГРА -->
-  <div id="gameScreen" class="game-screen">
-    <div class="app">
-      <div class="card">
-        <div class="title">Офисный разгром — MVP</div>
-        <div class="subtitle">
-          Ходи по офису, трогай объекты, разговаривай с людьми и доживи до разговора с боссом.
-        </div>
-      </div>
+</div>
 
       <div class="card top-grid">
         <div class="mini">

@@ -66,10 +66,15 @@ const howToPlayBtn = document.getElementById("howToPlayBtn");
 
 function openGame() {
   if (menuScreen) {
-    menuScreen.classList.remove("active");
-  }
+    menuScreen.classList.add("hidden");
 
-  if (gameScreen) {
+    setTimeout(() => {
+      menuScreen.classList.remove("active");
+      if (gameScreen) {
+        gameScreen.classList.add("active");
+      }
+    }, 350);
+  } else if (gameScreen) {
     gameScreen.classList.add("active");
   }
 }
