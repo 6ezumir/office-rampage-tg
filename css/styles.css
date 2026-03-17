@@ -1,0 +1,110 @@
+.game-screen {
+  display: none;
+}
+
+.game-screen.active {
+  display: block;
+}
+
+.menu-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background:
+    radial-gradient(circle at top, rgba(91, 140, 255, 0.18), transparent 35%),
+    linear-gradient(180deg, #08101d 0%, #0f1728 55%, #0b1020 100%);
+}
+
+.menu-screen.active {
+  display: flex;
+}
+
+.menu-card {
+  width: 100%;
+  max-width: 520px;
+  padding: 24px;
+  border-radius: 28px;
+  border: 1px solid rgba(120, 145, 210, 0.25);
+  background: linear-gradient(180deg, rgba(23, 31, 54, 0.95) 0%, rgba(13, 19, 35, 0.98) 100%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.menu-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(91, 140, 255, 0.35);
+  background: rgba(91, 140, 255, 0.12);
+  color: #cfe0ff;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.menu-title {
+  margin: 0;
+  font-size: 38px;
+  line-height: 0.95;
+  font-weight: 900;
+  color: #f3f6ff;
+  text-transform: uppercase;
+}
+
+.menu-subtitle {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #8fb0ff;
+  font-weight: 700;
+}
+
+.menu-description {
+  margin: 18px 0 24px;
+  color: #c5d0f0;
+  font-size: 15px;
+  line-height: 1.55;
+  max-width: 420px;
+}
+
+.menu-buttons {
+  display: grid;
+  gap: 10px;
+}
+
+.menu-btn {
+  appearance: none;
+  border: 1px solid rgba(133, 151, 198, 0.22);
+  background: linear-gradient(180deg, #25324d 0%, #1a2338 100%);
+  color: #eef3ff;
+  min-height: 58px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.menu-btn-primary {
+  background: linear-gradient(180deg, #6d99ff 0%, #4c79e8 100%);
+  color: white;
+  border-color: rgba(133, 176, 255, 0.6);
+}
+
+@media (max-width: 520px) {
+  .menu-card {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .menu-title {
+    font-size: 32px;
+  }
+
+  .menu-description {
+    font-size: 14px;
+  }
+}

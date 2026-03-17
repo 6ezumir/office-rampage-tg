@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+  />
+  <title>Офисный разгром — MVP</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+
+  <!-- МЕНЮ -->
+  <div id="menuScreen" class="menu-screen active">
+    <div class="menu-card">
+      <div class="menu-badge">MVP</div>
+      <h1 class="menu-title">ВЫЖИВИ ДО ПЯТНИЦЫ</h1>
+      <div class="menu-subtitle">Офисный разгром</div>
+
+      <p class="menu-description">
+        Пять дней. Один офис. Ноль внутреннего ресурса.
+        Постарайся дожить до конца недели.
+      </p>
+
+      <div class="menu-buttons">
+        <button class="menu-btn menu-btn-primary" id="startGameBtn">Начать</button>
+        <button class="menu-btn" id="howToPlayBtn">Как играть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ИГРА -->
+  <div id="gameScreen" class="game-screen">
+    <div class="app">
+      <div class="card">
+        <div class="title">Офисный разгром — MVP</div>
+        <div class="subtitle">
+          Ходи по офису, трогай объекты, разговаривай с людьми и доживи до разговора с боссом.
+        </div>
+      </div>
+
+      <div class="card top-grid">
+        <div class="mini">
+          <div class="k">День</div>
+          <div class="v" id="dayText">Понедельник</div>
+        </div>
+        <div class="mini">
+          <div class="k">Цель</div>
+          <div class="v" id="goalText">Поговорить с боссом</div>
+        </div>
+        <div class="mini">
+          <div class="k">Событий</div>
+          <div class="v"><span id="doneEvents">0</span>/4</div>
+        </div>
+      </div>
+
+      <div class="card stats">
+        <div class="stat-row">
+          <div class="label"><span>Энергия</span><span id="energyValue">70</span></div>
+          <div class="bar"><div id="energyBar" class="fill warn"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="label"><span>Стресс</span><span id="stressValue">25</span></div>
+          <div class="bar"><div id="stressBar" class="fill good"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="label"><span>Репутация</span><span id="repValue">50</span></div>
+          <div class="bar"><div id="repBar" class="fill warn"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="label"><span>Хаос</span><span id="chaosValue">10</span></div>
+          <div class="bar"><div id="chaosBar" class="fill good"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="canvas-wrap">
+          <canvas id="game" width="360" height="540"></canvas>
+        </div>
+        <div class="hint">
+          Подойди к объекту вплотную и нажми «Взаимодействовать». На компьютере работают стрелки/WASD и пробел.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="message" id="message">
+          Ты пришёл в офис. Уже плохо, но пока не критично.
+        </div>
+      </div>
+
+      <div class="card controls">
+        <div class="dpad">
+          <div></div>
+          <button class="btn" data-dir="up">↑</button>
+          <div></div>
+          <button class="btn" data-dir="left">←</button>
+          <button class="btn" data-dir="down">↓</button>
+          <button class="btn" data-dir="right">→</button>
+        </div>
+        <button class="btn action" id="interactBtn">Взаимодействовать</button>
+      </div>
+
+      <div class="card">
+        <button class="btn action" id="restartBtn" style="min-height:56px;">Начать заново</button>
+      </div>
+
+      <div class="footer-note">
+        Это хороший старт под GitHub Pages, Telegram Mini App и VK Mini App.
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
