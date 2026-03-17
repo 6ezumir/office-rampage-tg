@@ -58,11 +58,14 @@ if (restartBtn) {
 
 renderUI(state);
 
-// ===== MENU =====
+// ===== SCREENS =====
 const menuScreen = document.getElementById("menuScreen");
+const sleepScreen = document.getElementById("sleepScreen");
 const gameScreen = document.getElementById("gameScreen");
+
 const startGameBtn = document.getElementById("startGameBtn");
 const howToPlayBtn = document.getElementById("howToPlayBtn");
+const wakeBtn = document.getElementById("wakeBtn");
 
 function openGame() {
   if (menuScreen) {
@@ -70,11 +73,26 @@ function openGame() {
 
     setTimeout(() => {
       menuScreen.classList.remove("active");
-      if (gameScreen) {
-        gameScreen.classList.add("active");
+
+      if (sleepScreen) {
+        sleepScreen.classList.add("active");
       }
     }, 350);
-  } else if (gameScreen) {
+
+    return;
+  }
+
+  if (sleepScreen) {
+    sleepScreen.classList.add("active");
+  }
+}
+
+function wakeUp() {
+  if (sleepScreen) {
+    sleepScreen.classList.remove("active");
+  }
+
+  if (gameScreen) {
     gameScreen.classList.add("active");
   }
 }
@@ -85,7 +103,7 @@ function showHowToPlay() {
     "Передвигайся стрелками или WASD.\n" +
     "Подходи к объектам и людям.\n" +
     "Нажимай E, пробел или кнопку «Взаимодействовать».\n\n" +
-    "Следи за энергией, стрессом, репутацией и хаосом."
+    "Сначала выключи будильник, потом выживай."
   );
 }
 
@@ -95,6 +113,10 @@ if (startGameBtn) {
 
 if (howToPlayBtn) {
   howToPlayBtn.addEventListener("click", showHowToPlay);
+}
+
+if (wakeBtn) {
+  wakeBtn.addEventListener("click", wakeUp);
 }
 
 function loop() {
