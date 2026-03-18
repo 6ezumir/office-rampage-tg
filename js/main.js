@@ -1,3 +1,4 @@
+import { createWakeUpGame } from "./wakeup-scene.js";
 import { createGameState } from "./state.js";
 import { createPlayer, createWalls } from "./world.js";
 import { createInput, bindKeyboard, bindTouchControls } from "./input.js";
@@ -14,6 +15,7 @@ const walls = createWalls();
 const input = createInput();
 
 let game;
+let phaserWakeGame = null;
 
 const api = {
   say: (...args) => game.say(...args),
@@ -65,7 +67,21 @@ const gameScreen = document.getElementById("gameScreen");
 
 const startGameBtn = document.getElementById("startGameBtn");
 const howToPlayBtn = document.getElementById("howToPlayBtn");
-const wakeBtn = document.getElementById("wakeBtn");
+
+function finishWakeUpScene() {
+  if (sleepScreen) {
+    sleepScreen.classList.remove("active");
+  }
+
+  if (phaserWakeGame) {
+    phaserWakeGame.destroy(true);
+    phaserWakeGame = null;
+  }
+
+  if (gameScreen) {
+    gameScreen.classList.add("active");
+  }
+}
 
 function openGame() {
   if (menuScreen) {
@@ -77,6 +93,10 @@ function openGame() {
       if (sleepScreen) {
         sleepScreen.classList.add("active");
       }
+
+      if (!phaserWakeGame) {
+        phaserWakeGame = createWakeUpGame(finishWakeUpScene);
+      }
     }, 350);
 
     return;
@@ -85,15 +105,9 @@ function openGame() {
   if (sleepScreen) {
     sleepScreen.classList.add("active");
   }
-}
 
-function wakeUp() {
-  if (sleepScreen) {
-    sleepScreen.classList.remove("active");
-  }
-
-  if (gameScreen) {
-    gameScreen.classList.add("active");
+  if (!phaserWakeGame) {
+    phaserWakeGame = createWakeUpGame(finishWakeUpScene);
   }
 }
 
@@ -113,10 +127,6 @@ if (startGameBtn) {
 
 if (howToPlayBtn) {
   howToPlayBtn.addEventListener("click", showHowToPlay);
-}
-
-if (wakeBtn) {
-  wakeBtn.addEventListener("click", wakeUp);
 }
 
 function loop() {
