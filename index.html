@@ -37,26 +37,11 @@
     </div>
   </div>
 
- <!-- СЦЕНА СНА -->
-<div id="sleepScreen" class="sleep-screen">
-  <div class="sleep-scene">
-
-    <div class="bed">
-      <div class="blanket"></div>
-      <div class="person"></div>
-    </div>
-
-    <div class="alarm" id="alarmIcon">
-      <div class="alarm-light"></div>
-    </div>
-
-    <button id="wakeBtn" class="wake-btn">
-      Выключить будильник
-    </button>
-
+  <!-- СЦЕНА СНА -->
+  <div id="sleepScreen" class="sleep-screen">
+    <div id="phaserSleepGame"></div>
   </div>
-</div>
-  
+
   <!-- ИГРА -->
   <div id="gameScreen" class="game-screen">
     <div class="app">
@@ -138,6 +123,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>
